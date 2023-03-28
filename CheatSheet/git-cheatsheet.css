@@ -1,0 +1,64 @@
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 2rem;
+}
+
+.cheat-sheet-box {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin: 1rem;
+    width: calc(50% - 2rem);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.commands-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+}
+
+h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.comment {
+    color: #888;
+    font-style: italic;
+    margin-left: 1rem;
+}
+
+@media screen and (max-width: 768px) {
+    .cheat-sheet-box {
+        width: 100%;
+    }
+}
+
+.hidden {
+    overflow: hidden;
+}
+
+/* Add this to improve cursor feedback when hovering over a topic */
+.cheat-sheet-box {
+    cursor: pointer;
+}
