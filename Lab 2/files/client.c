@@ -17,6 +17,7 @@
 #define PORT 5555
 #define hostNameLength 50
 #define messageLength  256
+#define MAXMSG 512
 
 /* initSocketAddress
  * Initialises a sockaddr_in struct given a host name and a port.
@@ -50,6 +51,29 @@ void writeMessage(int fileDescriptor, char *message) {
   }
 }
 
+/* readMessageFromClient
+ * Reads and prints data read from the file (socket
+ * denoted by the file descriptor 'fileDescriptor'.
+ */
+int readMessageFromServer(int fileDescriptor) {
+  char buffer[MAXMSG];
+  int nOfBytes;
+
+  nOfBytes = read(fileDescriptor, buffer, MAXMSG);
+  if(nOfBytes < 0) {
+    perror("Could not read data from client\n");
+    exit(EXIT_FAILURE);
+  }
+  else
+    if(nOfBytes == 0) 
+      /* End of file */
+      return(-1);
+    else 
+      /* Data read */
+      printf(">Incoming message: %s\n",  buffer);
+  return(0);
+}
+
 int main(int argc, char *argv[]) {
   int sock;
   struct sockaddr_in serverName;
@@ -78,6 +102,7 @@ int main(int argc, char *argv[]) {
     perror("Could not connect to server\n");
     exit(EXIT_FAILURE);
   }
+
   /* Send data to the server */
   printf("\nType something and press [RETURN] to send it to the server.\n");
   printf("Type 'quit' to nuke this program.\n");
@@ -86,8 +111,10 @@ int main(int argc, char *argv[]) {
     printf("\n>");
     fgets(messageString, messageLength, stdin);
     messageString[messageLength - 1] = '\0';
-    if(strncmp(messageString,"quit\n",messageLength) != 0)
+    if(strncmp(messageString,"quit\n",messageLength) != 0){
       writeMessage(sock, messageString);
+      readMessageFromServer(sock);
+    }
     else {  
       close(sock);
       exit(EXIT_SUCCESS);
