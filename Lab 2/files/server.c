@@ -64,9 +64,6 @@ int makeSocket(unsigned short int port) {
 int readMessageFromClient(int fileDescriptor) {
   char buffer[MAXMSG];
   int nOfBytes;
-  char ACK[MAXMSG];
-  strcpy(ACK, "I hear you loud and clear.");
-  ACK[sizeof(ACK) - 1] = '\0';
   nOfBytes = read(fileDescriptor, buffer, MAXMSG);
   if(nOfBytes < 0) {
     perror("Could not read data from client\n");
@@ -79,11 +76,38 @@ int readMessageFromClient(int fileDescriptor) {
     else {
       /* Data read */
       printf(">Incoming message: %s\n",  buffer);
-      write(fileDescriptor, ACK, strlen(ACK) + 1);
       }
   return(0);
 }
 
+//Writes msg to client depending on msgType
+int sendMSG(int fileDescriptor, int msgType) {
+  int nOfBytes;
+  //Acknowledge message
+  if(msgType == 1) {
+    char ACK[MAXMSG];
+    strcpy(ACK, "I hear you loud and clear.");
+    ACK[sizeof(ACK) - 1] = '\0';
+    nOfBytes = write(fileDescriptor, ACK, strlen(ACK) + 1);
+    if(nOfBytes < 0) {
+      perror("Could not write data to client\n");
+      exit(EXIT_FAILURE);
+    }
+  }
+  //Blocked message
+  else if(msgType == 2) {
+    char Blocked[MAXMSG];
+    strcpy(Blocked, "Access denied.");
+    Blocked[sizeof(Blocked) - 1] = '\0';
+    nOfBytes = write(fileDescriptor, Blocked, strlen(Blocked) + 1);
+    if(nOfBytes < 0) {
+      perror("Could not write data to client\n");
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  return(0);
+}
 
 int main(int argc, char *argv[]) {
   int sock;
@@ -92,7 +116,7 @@ int main(int argc, char *argv[]) {
   fd_set activeFdSet, readFdSet; /* Used by select */
   struct sockaddr_in clientName;
   socklen_t size;
-  
+  const char *blocked_ip = "127.0.0.7";
  
   /* Create a socket and set it up to accept connections */
   sock = makeSocket(PORT);
@@ -126,16 +150,29 @@ int main(int argc, char *argv[]) {
 	    perror("Could not accept connection\n");
 	    exit(EXIT_FAILURE);
 	  }
+
 	  printf("Server: Connect from client %s, port %d\n", 
 		 inet_ntoa(clientName.sin_addr), 
 		 ntohs(clientName.sin_port));
 	  FD_SET(clientSocket, &activeFdSet);
+
+    //Check if client ip is blocked
+    char client_ip[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(clientName.sin_addr), client_ip, INET_ADDRSTRLEN);
+    
+    if(strcmp(client_ip, blocked_ip) == 0) {
+      printf("Server: Client-ip %s is blocked.\n", inet_ntoa(clientName.sin_addr));
+      sendMSG(clientSocket, 2);
+      close(clientSocket);
+      FD_CLR(clientSocket, &activeFdSet);
+    }
 	}
 	else {
 	  /* Data arriving on an already connected socket */
 	  if(readMessageFromClient(i) < 0) {
 	    close(i);
 	    FD_CLR(i, &activeFdSet);
+      sendMSG(i, 1);
 	  }
 	}
       }
