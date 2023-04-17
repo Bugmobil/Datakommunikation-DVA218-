@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -55,6 +56,7 @@ int makeSocket(unsigned short int port) {
   return(sock);
 }
 
+
 /* readMessageFromClient
  * Reads and prints data read from the file (socket
  * denoted by the file descriptor 'fileDescriptor'.
@@ -62,7 +64,9 @@ int makeSocket(unsigned short int port) {
 int readMessageFromClient(int fileDescriptor) {
   char buffer[MAXMSG];
   int nOfBytes;
-
+  char ACK[MAXMSG];
+  strcpy(ACK, "I hear you loud and clear.");
+  ACK[sizeof(ACK) - 1] = '\0';
   nOfBytes = read(fileDescriptor, buffer, MAXMSG);
   if(nOfBytes < 0) {
     perror("Could not read data from client\n");
@@ -72,11 +76,14 @@ int readMessageFromClient(int fileDescriptor) {
     if(nOfBytes == 0) 
       /* End of file */
       return(-1);
-    else 
+    else {
       /* Data read */
       printf(">Incoming message: %s\n",  buffer);
+      write(fileDescriptor, ACK, strlen(ACK) + 1);
+      }
   return(0);
 }
+
 
 int main(int argc, char *argv[]) {
   int sock;
