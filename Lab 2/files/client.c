@@ -102,6 +102,7 @@ int main(int argc, char *argv[]) {
     perror("Could not connect to server\n");
     exit(EXIT_FAILURE);
   }
+
   /* Send data to the server */
   printf("\nType something and press [RETURN] to send it to the server.\n");
   printf("Type 'quit' to nuke this program.\n");
