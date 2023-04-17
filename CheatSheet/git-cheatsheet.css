@@ -4,13 +4,73 @@ body {
     background-color: #f4f4f4;
     margin: 0;
     padding: 0;
+    position: relative;
+    min-height: 100vh;
 }
 
+main {
+    padding-top: 4rem;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  .menuItem {
+    display: block;
+    margin: 2rem 4rem;
+    font-size: 1.8rem;
+    color: rgb(15, 15, 15);
+    text-decoration: none;
+  }
+  
+  .menuItem:hover {
+    text-decoration: underline;
+  }
+  
+  .hamburger {
+    position: fixed;
+    z-index: 100;
+    top: 1rem;
+    right: 1rem;
+    padding: 4px;
+    border: black solid 1px;
+    background: white;
+    cursor: pointer;
+  }
+  
+  .closeIcon {
+    display: none;
+  }
+  
+  .menu {
+    position: fixed;
+    transform: translateY(-100%);
+    transition: transform 0.2s;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99;
+    background: rgb(236, 235, 235);
+    color: rgb(17, 17, 17);
+    list-style: none;
+    padding-top: 4rem;
+  }
+  
+  .showMenu {
+    transform: translateY(0);
+  }
+
+
 .container {
+    margin-top: 4rem;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    margin: 2rem;
+    margin: 1rem;
 }
 
 .cheat-sheet-box {
@@ -51,6 +111,7 @@ ul {
 @media screen and (max-width: 768px) {
     .cheat-sheet-box {
         width: 100%;
+        max-width: 600px;
     }
 }
 
@@ -61,4 +122,8 @@ ul {
 /* Add this to improve cursor feedback when hovering over a topic */
 .cheat-sheet-box {
     cursor: pointer;
+}
+
+.active {
+    display: block;
 }

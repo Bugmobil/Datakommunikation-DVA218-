@@ -1,72 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Git Cheat Sheet</title>
-    <link rel="stylesheet" href="git-cheatsheet.css">
-</head>
-<body>
-    <div class="container">
-        <div class="cheat-sheet-box" onclick="toggleCommands(this)">
-            <h2>General Git Commands</h2>
-            <div class="commands-container">
-                <ul class="hidden">
-                    <li>git init: <span class="comment">Initializes a new Git repository</span></li> 
-                    <li>git clone "url": <span class="comment">Clones a repository into a new directory</span></li>
-                    <li>git status: <span class="comment">Shows the working directory status, including modified, staged, and untracked files.</span></li>
-                    <li>git add "file": <span class="comment">Adds a file to the staging area</span></li>
-                    <li>git add .: <span class="comment">Adds all files to the staging area</span></li>
-                    <li>git commit -m "message": <span class="comment">Commits staged changes with a descriptive message.</span></li>
-                    <li>git log: <span class="comment">Shows the commit history</span></li>
-                    <li>git diff: <span class="comment">Shows the difference between the working directory and the staging area</span></li>
-                    <li>git diff --staged: <span class="comment">Shows the difference between the staging area and the repository</span></li>
-                    <li>git rm "file": <span class="comment">Removes a file from the working directory and stages the removal</span></li>
-                    <li>git mv "old file" "new file": <span class="comment">Renames a file and stages the change</span></li>
-                </ul>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Git Cheat Sheet</title>
+        <link rel="stylesheet" href="git-cheatsheet.css">
+         <!-- Material Icon CDN -->
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    </head>
+<body>  
+    <ul class="menu">
+        <li><a class="menuItem" href="#">Home</a></li>
+        <li><a class="menuItem" href="#">Profile</a></li>
+        <li><a class="menuItem" href="#">About</a></li>
+        <li><a class="menuItem" href="#">Contacts</a></li>
+      </ul>
+      <button class="hamburger">
+        <!-- material icons https://material.io/resources/icons/ -->
+        <i class="menuIcon material-icons">menu</i>
+        <i class="closeIcon material-icons">close</i>
+      </button>
+    <main>
+        <div class="container">
+            <div class="cheat-sheet-box" onclick="toggleCommands(this)">
+                <h2>General Git Commands</h2>
+                <div class="commands-container">
+                    <ul class="hidden">
+                        <li>git init <span class="comment">Initializes a new Git repository.</span></li> 
+                        <li>git clone "url" <span class="comment">Clones a repository into a new directory.</span></li>
+                        <li>git status <span class="comment">Shows the working directory status, including modified, staged, and untracked files.</span></li>
+                        <li>git add "file" <span class="comment">Adds a file to the staging area.</span></li>
+                        <li>git add <span class="comment">Adds all files to the staging area.</span></li>
+                        <li>git commit -m "message" <span class="comment">Commits staged changes with a descriptive message.</span></li>
+                        <li>git log <span class="comment">Shows the commit history.</span></li>
+                        <li>git diff <span class="comment">Shows the difference between the working directory and the staging area.</span></li>
+                        <li>git diff --staged <span class="comment">Shows the difference between the staging area and the repository.</span></li>
+                        <li>git rm "file" <span class="comment">Removes a file from the working directory and stages the removal.</span></li>
+                        <li>git mv "old file" "new file" <span class="comment">Renames a file and stages the change.</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="cheat-sheet-box" onclick="toggleCommands(this)">
+                <h2>Branching and Merging</h2>
+                <div class="commands-container">
+                    <ul class="hidden">
+                        <li>git branch <span class="comment">Lists all local branches in the current repositor.y</span></li>
+                        <li>git branch "branch name" <span class="comment">Creates a new branch.</span></li>
+                        <li>git checkout "branch name" <span class="comment">Switches to the specified branch and updates the working directory.</span></li>
+                        <li>git checkout -b "branch name" <span class="comment">Creates a new branch and switches to it.</span></li>
+                        <li>git merge "branch name" <span class="comment">Merges the specified branch's history into the current branch.</span></li>
+                        <li>git branch -d "branch name": <span class="comment">Deletes the specified branch.</span></li>
+                        <!-- Add the other branching and merging commands here -->
+                    </ul>
+                </div>
+            </div>
+            <div class="cheat-sheet-box" onclick="toggleCommands(this)">
+                <h2>Remote Repositories</h2>
+                <div class="commands-container"> 
+                    <ul class="hidden"> 
+                        <li>git remote <span class="comment">Lists all remote repositories.</span></li>
+                        <li>git remote add "remote-name" "url" <span class="comment">Adds a new remote.</span></li>
+                        <li>git remote rm remote-name <span class="comment">Removes a remote.</span></li>
+                        <li>git fetch "remote-name" <span class="comment">Downloads all history from the remote tracking branches.</span></li>
+                        <li>git merge "remote-name" "branch-name" <span class="comment">Merges the remote branch into the current branch to bring it up to date.</span></li>
+                        <li>git push "remote-name" "branch-name" <span class="comment">Uploads all local branch commits to GitHub.</span></li>
+                        <li>git pull "remote-name" "branch-name" <span class="comment">Downloads bookmark history and incorporates changes.</span></li>
+                        <li>git remote show "remote-name" <span class="comment">Shows information about a remote.</span></li>
+                        <!-- Add the other remote repository commands here -->
+                    </ul>
+                </div>
+            </div>
+            <div class="cheat-sheet-box" onclick="toggleCommands(this)">
+                <h2>Undoing Changes</h2>
+                <div class="commands-container">
+                    <ul class="hidden">
+                        <li>git checkout -- "file" <span class="comment">Discards changes in the working directory.</span></li>
+                        <li>git reset HEAD "file" <span class="comment">Unstages the file, but preserve its contents.</span></li>
+                        <li>git revert "commit" <span class="comment">Creates a new commit that undoes all of the changes made in the specified commit.</span></li>
+                        <li>git reset "commit" <span class="comment">Undoes all of the commits after the specified commit, preserving changes locally.</span></li>
+            </div>
             </div>
         </div>
-        <div class="cheat-sheet-box" onclick="toggleCommands(this)">
-            <h2>Branching and Merging</h2>
-            <div class="commands-container">
-                <ul class="hidden">
-                    <li>git branch: <span class="comment">Lists all local branches in the current repository</span></li>
-                    <li>git branch "branch name": <span class="comment">Creates a new branch</span></li>
-                    <li>git checkout "branch name": <span class="comment">Switches to the specified branch and updates the working directory</span></li>
-                    <li>git checkout -b "branch name": <span class="comment">Creates a new branch and switches to it</span></li>
-                    <li>git merge "branch name": <span class="comment">Merges the specified branch's history into the current branch</span></li>
-                    <li>git branch -d "branch name": <span class="comment">Deletes the specified branch</span></li>
-                    <!-- Add the other branching and merging commands here -->
-                </ul>
-            </div>
-        </div>
-        <div class="cheat-sheet-box" onclick="toggleCommands(this)">
-            <h2>Remote Repositories</h2>
-            <div class="commands-container"> 
-                <ul class="hidden"> 
-                    <li>git remote: <span class="comment">Lists all remote repositories</span></li>
-                    <li>git remote add "remote-name" "url": <span class="comment">Adds a new remote</span></li>
-                    <li>git remote rm remote-name: <span class="comment">Removes a remote</span></li>
-                    <li>git fetch "remote-name": <span class="comment">Downloads all history from the remote tracking branches</span></li>
-                    <li>git merge "remote-name" "branch-name": <span class="comment">Merges the remote branch into the current branch to bring it up to date</span></li>
-                    <li>git push "remote-name" "branch-name": <span class="comment">Uploads all local branch commits to GitHub</span></li>
-                    <li>git pull "remote-name" "branch-name": <span class="comment">Downloads bookmark history and incorporates changes</span></li>
-                    <li>git remote show "remote-name": <span class="comment">Shows information about a remote</span></li>
-                    <!-- Add the other remote repository commands here -->
-                </ul>
-            </div>
-        </div>
-        <div class="cheat-sheet-box" onclick="toggleCommands(this)">
-            <h2>Undoing Changes</h2>
-            <div class="commands-container">
-                <ul class="hidden">
-                    <li>git checkout -- "file": <span class="comment">Discards changes in the working directory</span></li>
-                    <li>git reset HEAD "file": <span class="comment">Unstages the file, but preserve its contents</span></li>
-                    <li>git revert "commit": <span class="comment">Creates a new commit that undoes all of the changes made in the specified commit</span></li>
-                    <li>git reset "commit": <span class="comment">Undoes all of the commits after the specified commit, preserving changes locally</span></li>
-         </div>
-        </div>
-    </div>
+    </main>
     <script src="git-cheatsheet.js"></script>
 </body>
 </html>
