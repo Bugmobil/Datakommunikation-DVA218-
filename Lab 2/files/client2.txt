@@ -6,11 +6,11 @@ Type 'quit' to nuke this program.
 
 >Hello
 
->>Incoming message: I hear you loud and clear.
+>Incoming message: I hear you loud and clear.
 >Incoming message: A new power is rising!
 bye
 
->>Incoming message: I hear you loud and clear.
+>Incoming message: I hear you loud and clear.
 quit
 student@student-VirtualBox: ~/Datakommunikation-DVA218-/Lab 2/files exit
 
