@@ -1,0 +1,18 @@
+Script started on 2023-04-19 14:35:41+0200
+]0;student@student-VirtualBox: ~/Datakommunikation-DVA218-/Lab 2/files[01;32mstudent@student-VirtualBox[00m:[01;34m~/Datakommunikaation-DVA218-/Lab 2/files[00m$ ./client studennt-VirtualBox
+
+Type something and press [RETURN] to send it to the server.
+Type 'quit' to nuke this program.
+
+>God da    da d    Hello
+
+>>Incoming message: I hear you loud and clear.
+>Incoming message: A new power is rising!
+N bye
+
+>>Incoming message: I hear you loud and clear.
+quit
+]0;student@student-VirtualBox: ~/Datakommunikation-DVA218-/Lab 2/files[01;32mstudent@student-VirtualBox[00m:[01;34m~/Datakommunikaation-DVA218-/Lab 2/files[00m$ exit
+exit
+
+Script done on 2023-04-19 14:40:22+0200
