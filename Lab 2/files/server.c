@@ -161,39 +161,30 @@ int sendMSG(int fileDescriptor, int msgType) {
 			exit(EXIT_FAILURE);
 		}
 	}
-	else {
-		char Announce[MAXMSG];
-		strcpy(Announce, "New Client has connected.");
-		Announce[sizeof(Announce) - 1] = '\0';
-		nOfBytes = write(fileDescriptor, Announce, strlen(Announce) + 1);
-		if(nOfBytes < 0)
-		{
-			perror("Could not write data to client\n");
-			exit(EXIT_FAILURE);
-		}
-	}
 	return(0);
 }
 
+//Sends a message to all clients except the one just connected
 void AnnounceNewClient(fd_set* activeFdSet, int fd, int clientFD)
 {
 	int i, nOfBytes;
 	char msg[MAXMSG];
 	strcpy(msg, "A new power is rising!");
 	msg[sizeof(msg) - 1] = '\0';
-	for(i = 0; i < FD_SETSIZE; ++i)
-	if(FD_ISSET(i, activeFdSet))
-    {
-        if(i != fd && i != clientFD)
-        {
-            nOfBytes = write(i, msg, MAXMSG);
-            if(nOfBytes < 0)
-            {
-                perror("Could not write data to client\n");
-                exit(EXIT_FAILURE);
-            }
-        }
-    }
+	
+	for(i = 0; i < FD_SETSIZE; ++i)	// Iterate through all file descriptors in the set
+		if(FD_ISSET(i, activeFdSet)) // If the file descriptor is in the set 
+		{
+			if(i != fd && i != clientFD) // If the file descriptor is not the server or the client
+			{
+				nOfBytes = write(i, msg, MAXMSG); // Send the message to the client
+				if(nOfBytes < 0)
+				{
+					perror("Could not write data to client\n");
+					exit(EXIT_FAILURE);
+				}
+			}
+		}
 }
 
 int main(int argc, char *argv[])
@@ -232,54 +223,54 @@ int main(int argc, char *argv[])
 		}
 		/* Service all the sockets with input pending */
 		for(i = 0; i < FD_SETSIZE; ++i)
-		if(FD_ISSET(i, &readFdSet))
-		{
-			if(i == sock)
+			if(FD_ISSET(i, &readFdSet))
 			{
-				/* Connection request on original socket */
-				size = sizeof(struct sockaddr_in);
-				/* Accept the connection request from a client. */
-				clientSocket = accept(sock, (struct sockaddr *)&clientName, (socklen_t *)&size);
-				if(clientSocket < 0)
+				if(i == sock)
 				{
-					perror("Could not accept connection\n");
-					exit(EXIT_FAILURE);
-				}
+					/* Connection request on original socket */
+					size = sizeof(struct sockaddr_in);
+					/* Accept the connection request from a client. */
+					clientSocket = accept(sock, (struct sockaddr *)&clientName, (socklen_t *)&size);
+					if(clientSocket < 0)
+					{
+						perror("Could not accept connection\n");
+						exit(EXIT_FAILURE);
+					}
 
-				printf("Server: Connect from client %s, port %d\n",
-				inet_ntoa(clientName.sin_addr),
-				ntohs(clientName.sin_port));
-				FD_SET(clientSocket, &activeFdSet);
-				//sendMSG(clientSocket, 3);
-				AnnounceNewClient(&activeFdSet, sock, clientSocket);
+					printf("Server: Connect from client %s, port %d\n",
+					inet_ntoa(clientName.sin_addr),
+					ntohs(clientName.sin_port));
+					FD_SET(clientSocket, &activeFdSet);
+					//sendMSG(clientSocket, 3);
+					AnnounceNewClient(&activeFdSet, sock, clientSocket);
 
-				//Check if client ip is blocked
-				char client_ip[INET_ADDRSTRLEN];
-				inet_ntop(AF_INET, &(clientName.sin_addr), client_ip, INET_ADDRSTRLEN);
+					//Check if client ip is blocked
+					char client_ip[INET_ADDRSTRLEN];
+					inet_ntop(AF_INET, &(clientName.sin_addr), client_ip, INET_ADDRSTRLEN);
 
-				if(strcmp(client_ip, blocked_ip) == 0)
-				{
-					printf("Server: Client-ip %s is blocked.\n", inet_ntoa(clientName.sin_addr));
-					sendMSG(clientSocket, 2);
-					close(clientSocket);
-					FD_CLR(clientSocket, &activeFdSet);
-				}
-			}
-			else
-			{
-				/* Data arriving on an already connected socket */
-				if(readMessageFromClient(i) < 0)
-				{
-					close(i);
-					FD_CLR(i, &activeFdSet);
-
+					if(strcmp(client_ip, blocked_ip) == 0)
+					{
+						printf("Server: Client-ip %s is blocked.\n", inet_ntoa(clientName.sin_addr));
+						sendMSG(clientSocket, 2);
+						close(clientSocket);
+						FD_CLR(clientSocket, &activeFdSet);
+					}
 				}
 				else
 				{
-					sendMSG(i, 1);
+					/* Data arriving on an already connected socket */
+					if(readMessageFromClient(i) < 0)
+					{
+						close(i);
+						FD_CLR(i, &activeFdSet);
+
+					}
+					else
+					{
+						sendMSG(i, 1);
+					}
 				}
 			}
-		}
 	}
 }
 

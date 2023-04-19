@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
     perror("Could not connect to server\n");
     exit(EXIT_FAILURE);
   }
-
+  // Create a thread to read messages from the server
   pthread_create(&tid, NULL, (void*) readMessageFromServer, (void*) &sock);
 
   /* Send data to the server */
