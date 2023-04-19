@@ -31,7 +31,36 @@ int makeSocket(unsigned short int port)
 {
 	int sock;
 	struct sockaddr_in name;
+int makeSocket(unsigned short int port)
+{
+	int sock;
+	struct sockaddr_in name;
 
+	/* Create a socket. */
+	sock = socket(PF_INET, SOCK_STREAM, 0);
+	if(sock < 0)
+	{
+		perror("Could not create a socket\n");
+		exit(EXIT_FAILURE);
+	}
+	/* Give the socket a name. */
+	/* Socket address format set to AF_INET for Internet use. */
+	name.sin_family = AF_INET;
+	/* Set port number. The function htons converts from host byte order to network byte order.*/
+	name.sin_port = htons(port);
+	/* Set the Internet address of the host the function is called from. */
+	/* The function htonl converts INADDR_ANY from host byte order to network byte order. */
+	/* (htonl does the same thing as htons but the former converts a long integer whereas
+	* htons converts a short.)
+	*/
+	name.sin_addr.s_addr = htonl(INADDR_ANY);
+	/* Assign an address to the socket by calling bind. */
+	if(bind(sock, (struct sockaddr *)&name, sizeof(name)) < 0)
+	{
+		perror("Could not bind a name to the socket\n");
+		exit(EXIT_FAILURE);
+	}
+	return(sock);
 	/* Create a socket. */
 	sock = socket(PF_INET, SOCK_STREAM, 0);
 	if(sock < 0)
@@ -65,6 +94,24 @@ int makeSocket(unsigned short int port)
  * denoted by the file descriptor 'fileDescriptor'.
  */
 int readMessageFromClient(int fileDescriptor) {
+	char buffer[MAXMSG];
+	int nOfBytes;
+	nOfBytes = read(fileDescriptor, buffer, MAXMSG);
+	if(nOfBytes < 0)
+	{
+		perror("Could not read data from client\n");
+		exit(EXIT_FAILURE);
+	}
+	else
+	if(nOfBytes == 0)
+		/* End of file */
+		return(-1);
+	else
+	{
+		/* Data read */
+		printf(">Incoming message: %s\n",  buffer);
+	}
+	return(0);
 	char buffer[MAXMSG];
 	int nOfBytes;
 	nOfBytes = read(fileDescriptor, buffer, MAXMSG);
@@ -235,3 +282,4 @@ int main(int argc, char *argv[])
 		}
 	}
 }
+
