@@ -1,6 +1,5 @@
 Script started on 2023-04-19 14:35:26+0200
-]0;student@student-VirtualBox: ~/Datakommunikation-DVA218-/Lab 2/files[01;32mstudent@student-VirtualBox[00m:[01;34m~/Datakommunikaation-DVA218-/Lab 2/files[00m$ exit./client studennt-VirtualBox[A[C[C[C[C[C[C[C[C[C[C[C[C[C[Cexit[K
-[K[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[K./server
+student@student-VirtualBox: ~/Datakommunikation-DVA218-/Lab 2/files ./server
 
 [waiting for connections...]
 Server: Connect from client 127.0.0.1, port 49352
@@ -17,7 +16,8 @@ Server: Connect from client 127.0.0.1, port 33012
 >Incoming message: bye
 
 ^C
-]0;student@student-VirtualBox: ~/Datakommunikation-DVA218-/Lab 2/files[01;32mstudent@student-VirtualBox[00m:[01;34m~/Datakommunikaation-DVA218-/Lab 2/files[00m$ exit
+]0;student@student-VirtualBox: ~/Datakommunikation-DVA218-/Lab 2/files[01;32mstudent@student-VirtualBox[00m:[01;34m~/Datakommunika
+ation-DVA218-/Lab 2/files[00m$ exit
 exit
 
 Script done on 2023-04-19 14:40:17+0200
