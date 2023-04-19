@@ -1,8 +1,10 @@
-/* File: client.c
- * Trying out socket communication between processes using the Internet protocol family.
- * Usage: client [host name], that is, if a server is running on 'lab1-6.idt.mdh.se'
- * then type 'client lab1-6.idt.mdh.se' and follow the on-screen instructions.
- */
+/*
+Program name: Client
+Author: Majid Azizi & Andreas Pearson
+Description: This program is the client side of a chat program. 
+It connects to a server and sends messages to the server. 
+Last modified: 2023-04-19
+*/
 
 #include <stdio.h>
 #include <errno.h>
@@ -72,7 +74,7 @@ void readMessageFromServer(int* fileDescriptor)
 			exit(EXIT_FAILURE);
 		}
 		else if(nOfBytes > 0)
-			printf(">Incoming message: %s\n",  buffer);
+			printf("Incoming message: %s\n>",  buffer);
 	}
 }
 

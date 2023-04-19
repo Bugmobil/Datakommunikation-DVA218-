@@ -1,6 +1,11 @@
-/* File: server.c
- * Trying out socket communication between processes using the Internet protocol family.
- */
+/*
+Program name: Server
+Author: Majid Azizi & Andreas Pearson
+Description: This program is the server side of a chat program. 
+It waits for clients to connect uppon receiving a message from a client it sends a ACK to the client.
+When a new client connects to the server it sends a message to the other client.
+Last modified: 2023-04-19
+*/
 
 #include <stdio.h>
 #include <errno.h>
@@ -27,10 +32,7 @@
  * the system replaces that with the machine's
  * actual address.
  */
-int makeSocket(unsigned short int port)
-{
-	int sock;
-	struct sockaddr_in name;
+
 int makeSocket(unsigned short int port)
 {
 	int sock;
@@ -94,24 +96,6 @@ int makeSocket(unsigned short int port)
  * denoted by the file descriptor 'fileDescriptor'.
  */
 int readMessageFromClient(int fileDescriptor) {
-	char buffer[MAXMSG];
-	int nOfBytes;
-	nOfBytes = read(fileDescriptor, buffer, MAXMSG);
-	if(nOfBytes < 0)
-	{
-		perror("Could not read data from client\n");
-		exit(EXIT_FAILURE);
-	}
-	else
-	if(nOfBytes == 0)
-		/* End of file */
-		return(-1);
-	else
-	{
-		/* Data read */
-		printf(">Incoming message: %s\n",  buffer);
-	}
-	return(0);
 	char buffer[MAXMSG];
 	int nOfBytes;
 	nOfBytes = read(fileDescriptor, buffer, MAXMSG);
