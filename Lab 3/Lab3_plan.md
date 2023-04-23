@@ -75,3 +75,18 @@
 - Techniques include:
    - Retransmission upon timeout or negative ACK
    - Buffering and reordering out-of-order packets
+
+
+# State Machines
+- Used to model the behavior of a system
+
+| Moore Machine | Mealy Machine | 
+--|-|
+| Output depends only upon the present state. |	Output depends on the present state as well as present input. |
+|Moore machine also places its output on the transition.	|Mealy Machine places its output on the transition.|
+|More states are required. |	Less number of states are required.  |
+|There is less hardware requirement for circuit implementation. |	There is more hardware requirement for circuit implementation.  |
+| They react slower to inputs(One clock cycle later). |	They react faster to inputs.  |
+|Synchronous output and state generation. |	Asynchronous output generation.  |
+|Output is placed on states.| 	Output is placed on transitions.|  
+|Easy to design. 	| It is difficult to design.| 
