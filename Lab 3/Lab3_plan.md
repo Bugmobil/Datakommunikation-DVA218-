@@ -56,16 +56,49 @@
    - Cyclic Redundancy Check (CRC)
 
 ## 3. Sliding Window Mechanisms
-- Used to efficiently manage data flow and control
-- Two main types:
-   1. Go-Back-N
-      - Sender maintains a window of packets to send
-      - Receiver sends ACK for the highest in-order packet received
-      - If a packet is lost or corrupted, sender retransmits from the lost packet and continues
-   2. Selective Repeat
-      - Sender maintains a window of packets to send
-      - Receiver sends ACK for each received packet, regardless of order
-      - Sender retransmits only lost or corrupted packets
+   Used to efficiently manage data flow and control
+### **Go-Back-N**
+  1. Define the window size (N): Choose a suitable window size for your protocol. The window size determines the maximum number of unacknowledged packets that can be in transit at any given time.
+
+  2. Sender side:
+
+     - Maintain two variables: **'base'** (oldest unacknowledged packet) and **'nextseqnum'** (next packet to be sent).
+     - Send packets within the window: If **'nextseqnum'** < **'base'** + N, send the packet with the sequence number **'nextseqnum'** and increment **'nextseqnum'**.
+     - Set a timer for the oldest unacknowledged packet (packet with sequence number **'base'**).
+     - If the timer expires, retransmit all unacknowledged packets and restart the timer for the oldest unacknowledged packet.
+
+  3. Receiver side:
+
+      - Maintain a single variable: **'expectedseqnum'** (next expected packet).
+      - When a packet arrives, check its sequence number:
+      - If it matches **'expectedseqnum'**, send an ACK for the packet, and increment **'expectedseqnum'**.
+      - If it doesn't match, discard the packet and resend the ACK for the last correctly received packet (with sequence number **'expectedseqnum - 1'**).
+  4. Sender side (processing ACKs):
+
+      - When an ACK arrives, update the **'base'** variable to be the next expected sequence number (**'ACK_sequence_number + 1'**).
+      - If there are unacknowledged packets left (i.e., **'base'** < **'nextseqnum'**), restart the timer for the oldest unacknowledged packet.
+      - If all packets have been acknowledged, stop the timer.
+      - 
+### **Selective Repeat**
+      
+   1. Define the window size (N): Choose a suitable window size for your protocol. The window size should be even, and the sequence number space should be at least twice the window size.
+
+   2. Sender side:
+
+      - Maintain two variables: **'base'** (oldest unacknowledged packet) and nextseqnum (next packet to be sent).
+      - Send packets within the window: If **'nextseqnum'** < **'base'** + N, send the packet with the sequence number **'nextseqnum'** and increment **'nextseqnum'**.
+      - Set individual timers for each packet in the window. If a timer expires, retransmit the corresponding packet and restart its timer.
+   
+   3. Receiver side:
+
+      - Maintain a buffer for out-of-order packets and a variable **'expectedseqnum'** (next expected packet).
+      - When a packet arrives, send an ACK for the packet immediately, regardless of its sequence number.
+      - If the packet has the expected sequence number, increment **'expectedseqnum'** and deliver any consecutive buffered packets.
+
+   4. Sender side (processing ACKs):
+
+      - When an ACK arrives, mark the corresponding packet as acknowledged.
+      - If the ACK is for the oldest unacknowledged packet (packet with sequence number **'base'**), update the **'base'** variable to the next unacknowledged sequence number and cancel the timer for the acknowledged packet.
 
 ## 4. Handling Packet Issues
 - Deal with lost, corrupt, and out-of-order packets in transmission
@@ -90,3 +123,6 @@
 |Synchronous output and state generation. |	Asynchronous output generation.  |
 |Output is placed on states.| 	Output is placed on transitions.|  
 |Easy to design. 	| It is difficult to design.| 
+
+
+
