@@ -5,4 +5,4 @@ struct protocol
     int length;
     int checksum;
     char* data;
-}
+};
