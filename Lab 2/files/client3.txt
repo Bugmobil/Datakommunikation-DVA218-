@@ -1,16 +1,13 @@
 Script started on 2023-04-19 14:19:30+0200
-]0;student@student-VirtualBox: ~/Datakommunikation-DVA218-/Lab 2/files[01;32mstudent@student-VirtualBox[00m:[01;34m~/Data
-2/files[01;32mstudent@student-VirtualBox[00m:[01;34m~/Datakommunikation-DVA218-/Lab 2/files[00m$ [K[A[A]0;student@student-VirtualBox: ~/Datakommunikation-DVA218-/Lab 2/files[01;32mstudent@student-VirtualBox[00m:[01;34m~/Datakommunikkation-DVA218-/Lab 2/files[00m$ git commit orrigin[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C-a[K[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Corigin[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[K
-[K[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C./client studdent-VirtualBox
+student@student-VirtualBox: ~/Datakommunikation-DVA218-/Lab 2/files./client student-VirtualBox
 
 Type something and press [RETURN] to send it to the server.
 Type 'quit' to nuke this program.
 
->Thanks byt e!
+>Thanks bye!
 
->>Incoming message: I hear you loud and clear.
+>Incoming message: I hear you loud and clear.
 quit
-]0;student@student-VirtualBox: ~/Datakommunikation-DVA218-/Lab 2/files[01;32mstudent@student-VirtualBox[00m:[01;34m~/Datakommunikkation-DVA218-/Lab 2/files[00m$ exit
-exit
+student@student-VirtualBox: ~/Datakommunikation-DVA218-/Lab 2/files exit
 
 Script done on 2023-04-19 14:40:24+0200
