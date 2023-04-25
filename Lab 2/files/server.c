@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
 	fd_set activeFdSet, readFdSet; /* Used by select */
 	struct sockaddr_in clientName;
 	socklen_t size;
-	const char *blocked_ip = "127.0.0.7";
+	const char *blocked_ip = "127.0.0.1";
 
 
 	/* Create a socket and set it up to accept connections */
