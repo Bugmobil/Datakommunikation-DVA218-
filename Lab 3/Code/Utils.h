@@ -28,7 +28,7 @@ such as error handling, logging, or conversion functions.
 void initPacket(Packet* packet);
 
 typedef struct {
-    int sequenceNumber;
+    int seqNum;
     char data[MAXMSG];
     int dataSize;
     bool ACK;
@@ -37,5 +37,6 @@ typedef struct {
     time_t timestamp;
     uint32_t checksum;
 } Packet;
+
 
 #endif
