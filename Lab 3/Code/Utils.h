@@ -17,5 +17,5 @@ typedef struct {
     int dataSize;
     bool ACK;
     time_t timestamp;
-    unit32_t checksum;
+    uint32_t checksum;
 } Packet;
