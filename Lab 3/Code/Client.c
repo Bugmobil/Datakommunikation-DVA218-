@@ -5,6 +5,7 @@ int main(int argc, char *argv[])
 {
     int sockfd;
     struct sockaddr_in server_addr, client_addr;
+    Packet packet;
     char hostName[hostNameLength];
     char buffer[] = "Hello from client";
 
@@ -24,7 +25,7 @@ int main(int argc, char *argv[])
 
     // Configure settings in address and port
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(9002);
+    server_addr.sin_port = PORT;
     server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     // Send data to server

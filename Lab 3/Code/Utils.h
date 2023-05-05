@@ -23,6 +23,8 @@ such as error handling, logging, or conversion functions.
 #define messageLength 256
 #define MAXMSG 512
 
+void initPacket(Packet* packet);
+
 typedef struct {
     int sequenceNumber;
     char data[MAXMSG];
