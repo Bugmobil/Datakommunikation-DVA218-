@@ -3,6 +3,8 @@ This header file contains declarations of any utility functions or
 data structures you might need for your implementation, 
 such as error handling, logging, or conversion functions.
 */
+#ifndef UTILS_H
+#define UTILS_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,3 +35,5 @@ typedef struct {
     time_t timestamp;
     uint32_t checksum;
 } Packet;
+
+#endif
