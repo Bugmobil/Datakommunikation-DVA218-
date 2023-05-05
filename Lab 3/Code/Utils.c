@@ -15,3 +15,4 @@ void initPacket(Packet* packet)
     packet->timestamp = 0;
     packet->checksum = 0;
 }
+
