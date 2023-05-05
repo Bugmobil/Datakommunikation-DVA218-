@@ -1,13 +1,13 @@
-#include <Utils.h>
-
+#include "Utils.h"
+#include "Setup.h"
 
 int main(int argc, char *argv[])
 {
     int sockfd;
-    struct sockaddr_in server_addr, client_addr;
-    Packet packet;
     char hostName[hostNameLength];
-    char buffer[] = "Hello from client";
+    struct sockaddr_in server_addr;
+    struct hostent* hostInfo;
+    Packet packet;
 
     if(argv[1] == NULL)
     {
@@ -22,14 +22,12 @@ int main(int argc, char *argv[])
 
     // Create a UDP socket
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    hostInfo = gethostbyname(hostName);
 
     // Configure settings in address and port
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = PORT;
-    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-
-    // Send data to server
-    sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)&server_addr, sizeof(server_addr));
+    server_addr.sin_port = htons(PORT);
+    server_addr.sin_addr = *(struct in_addr *)hostInfo->h_addr_list[0];
 
     // Close the socket
     close(sockfd);
