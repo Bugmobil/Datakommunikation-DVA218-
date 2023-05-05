@@ -1,3 +1,9 @@
+/*
+This header file contains declarations of any utility functions or 
+data structures you might need for your implementation, 
+such as error handling, logging, or conversion functions.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,12 +18,18 @@
 #include <stdint.h>
 #include <netdb.h>
 
+#define PORT 5555
+#define hostNameLength 50
+#define messageLength 256
+#define MAXMSG 512
 
 typedef struct {
     int sequenceNumber;
-    char* data;
+    char data[MAXMSG];
     int dataSize;
     bool ACK;
+    bool SYN;
+    bool FIN;
     time_t timestamp;
     uint32_t checksum;
 } Packet;
