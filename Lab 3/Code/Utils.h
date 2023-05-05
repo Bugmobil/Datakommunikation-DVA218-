@@ -10,12 +10,18 @@
 #include <errno.h>
 #include <stdint.h>
 
+#define PORT 5555
+#define hostNameLength 50
+#define messageLength 256
+#define MAXMSG 512
 
 typedef struct {
     int sequenceNumber;
-    char* data;
+    char data[MAXMSG];
     int dataSize;
     bool ACK;
+    bool SYN;
+    bool FIN;
     time_t timestamp;
-    unit32_t checksum;
+    uint32_t checksum;
 } Packet;
