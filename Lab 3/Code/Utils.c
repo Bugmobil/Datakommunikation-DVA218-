@@ -1,3 +1,7 @@
+/*
+This file contains the implementation of the utility functions declared in utils.h.
+*/
+
 #include "Utils.h"
 
 void initPacket(Packet* packet)
@@ -11,6 +15,3 @@ void initPacket(Packet* packet)
     packet->timestamp = 0;
     packet->checksum = 0;
 }
-/*
-This file contains the implementation of the utility functions declared in utils.h.
-*/
