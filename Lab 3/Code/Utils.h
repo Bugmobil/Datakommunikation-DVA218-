@@ -1,3 +1,9 @@
+/*
+This header file contains declarations of any utility functions or 
+data structures you might need for your implementation, 
+such as error handling, logging, or conversion functions.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
