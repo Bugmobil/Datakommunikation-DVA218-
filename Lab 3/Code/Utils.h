@@ -23,13 +23,15 @@ such as error handling, logging, or conversion functions.
 #define PORT 5555
 #define hostNameLength 50
 #define messageLength 256
-#define MAXMSG 512
+#define MAXMSG 1024
 
-void initPacket(Packet* packet);
+void InitPacket(Packet* packet);
+void Serialize(Packet packet, char* buffer);
+void Deserialize(Packet* packet, char* buffer)
 
 typedef struct {
     int seqNum;
-    char data[MAXMSG];
+    char data[messageLength];
     int dataSize;
     bool ACK;
     bool SYN;
