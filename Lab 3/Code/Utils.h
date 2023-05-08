@@ -23,19 +23,19 @@ such as error handling, logging, or conversion functions.
 #define PORT 5555
 #define hostNameLength 50
 #define messageLength 256
-#define MAXMSG 1024
+#define MAXMSG messageLength + sizeof(uint16_t) + 4 * sizeof(uint32_t)
 
 void InitPacket(Packet* packet);
-void Serialize(Packet packet, char* buffer);
-void Deserialize(Packet* packet, char* buffer)
+void Serialize(char* buffer, Packet packet);
+void Deserialize(char* buffer, Packet* packet)
 
 typedef struct {
-    int seqNum;
-    char data[messageLength];
-    int dataSize;
     bool ACK;
     bool SYN;
     bool FIN;
+    char data[messageLength];
+    int dataSize;
+    int seqNum;
     time_t timestamp;
     uint32_t checksum;
 } Packet;
