@@ -15,30 +15,22 @@ error check codes, and sliding window mechanisms.
 #include <sys/socket.h>
 #include <arpa/inet.h> //inet_addr
 #include <netinet/in.h>
+#include <signal.h>
+#include <sys/time.h>
 #include <Utils.h>
+
 
 /* =============== Globalz =============== */
 #define N 5 // window size
 #define MAXSEQ 25600
+#define MAX_PKT 256
 
-int base, nextSeqNum, expectedSeqNum, windowSize;
+int base = 0, nextSeqNum = 0, expectedSeqNum;
 
-typedef struct {
-    int base;
-    int nextSeqNum;
-    int windowSize;
-} sndpkt;
 
+Packet sndpkt[MAX_PKT];
 
 /* =============== Functions =============== */
-
-// Functions to send and receive a packet using UDP
-void udt_send(Packet pkt);
-void rdt_rcv(Packet pkt);
-
-// Functions for timers
-void start_timer(int seqNum);
-void stop_timer(int seqNum);
 
 // Functions for packet handling
 Packet make_pkt(int seqNum, char* data, int checksum);
@@ -47,13 +39,24 @@ void extract_data(Packet pkt, char* data);
 void deliver_data(char* data);
 
 // Functions for packet validation
-void checksum(char* data);
-void not_corrupt(Packet pkt);
-void corrupt(Packet pkt);
+uint32_t checksum(const uint8_t *data, size_t len);
+int not_corrupt(Packet pkt);
+void corrupt(Packet *pkt);
 void not_duplicate(Packet pkt);
 void duplicate(Packet pkt);
-void has_seq_num(Packet pkt, int seqNum);
+int has_seq_num(Packet pkt, int seqNum);
 
 // Send function
 void send(char* data);
+
+// Functions for timers
+void timeout(int seqNum);
+void start_timer(int seqNum);
+void stop_timer(int seqNum);
+
+
+
+
+
+
 #endif
