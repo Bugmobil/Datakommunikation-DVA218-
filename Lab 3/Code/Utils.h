@@ -12,6 +12,7 @@ such as error handling, logging, or conversion functions.
 #include <stdbool.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -24,6 +25,7 @@ such as error handling, logging, or conversion functions.
 #define hostNameLength 50
 #define messageLength 256
 #define MAXMSG messageLength + sizeof(uint16_t) + 4 * sizeof(uint32_t)
+#define TIMEOUT 1
 
 void InitPacket(Packet* packet);
 void Serialize(char* buffer, Packet packet);
