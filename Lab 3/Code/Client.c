@@ -29,6 +29,8 @@ int main(int argc, char *argv[])
     server_addr.sin_port = htons(PORT);
     server_addr.sin_addr = *(struct in_addr *)hostInfo->h_addr_list[0];
 
+
+    
     // Close the socket
     close(sockfd);
 
