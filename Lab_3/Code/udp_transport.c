@@ -17,17 +17,19 @@ Packet make_pkt(int seqNum, char *data, int checksum)
     return pkt;
 }
 
-
+/* ============================== SLIDING WINDOW ==========================*/
 
 void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr) {
     unsigned char buffer[BUFFER_SIZE];
     size_t buffer_size;
 
-    // Serialize the packet into the buffer
-    buffer_size = serialize_packet(pkt, buffer, BUFFER_SIZE);
+    Serialize(buffer, *pkt);
 
     // Use sendto() to send the serialized packet using the UDP socket
-    sendto(sockfd, buffer, buffer_size, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
+    int bytes = sendto(sockfd, buffer, buffer_size, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
+    if (bytes < 0) {
+        perror("Error sending packet");
+    }
 }
 
 void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr) {
@@ -40,7 +42,7 @@ void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr) {
 
     if (recv_size > 0) {
         // Deserialize the received buffer and populate the packet structure
-        deserialize_packet(pkt, buffer, recv_size);
+        Deserialize(buffer, pkt);
     }
 }
 
@@ -124,7 +126,7 @@ void start_timer(int seqNum)
     struct itimerval timer;
 
     // Set the timer interval to 1 second
-    timer.it_value.tv_sec = 1;
+    timer.it_value.tv_sec = TIMEOUT;
     timer.it_value.tv_usec = 0;
 
     // Set the timer to not repeat
