@@ -1,17 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
+
 #include "Utils.h"
+#include "udp_transport.h"
 
 int main()
 {
     int sockfd;
     struct sockaddr_in server_addr;
-    char buffer[MAXMSG];
+    char message[messageLength];
 
     // Create a UDP socket
     sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -30,13 +25,19 @@ int main()
     while (1)
     {
         printf("Enter a message to send to the server: ");
-        fgets(buffer, MAXMSG, stdin);
+        fgets(message, messageLength, stdin);
+        message[strcspn(message, "\n")] = '\0';
 
-        int send_len = sendto(sockfd, buffer, strlen(buffer), 0, (const struct sockaddr *)&server_addr, sizeof(server_addr));
-        if (send_len < 0)
+        if (nextSeqNum < base + N)
         {
-            perror("sendto failed");
-            exit(EXIT_FAILURE);
+            sndpkt[nextSeqNum] = make_pkt(nextSeqNum, message, checksum(message, strlen(message)));
+            udt_send(&sndpkt[nextSeqNum], sockfd, SERVER_IP);
+            start_timer(nextSeqNum);
+            nextSeqNum = (nextSeqNum + 1) % MAXSEQ;
+        }
+        else
+        {
+            refuse_data(message);
         }
     }
 

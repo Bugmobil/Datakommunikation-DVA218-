@@ -20,14 +20,18 @@ such as error handling, logging, or conversion functions.
 #include <errno.h>
 #include <stdint.h>
 #include <netdb.h>
+#include <signal.h>
+#include <sys/time.h>
 
 #define PORT 5555
 #define SERVER_IP "127.0.0.1"
 #define hostNameLength 50
 #define messageLength 256
-#define MAXMSG messageLength + sizeof(uint16_t) + 4 * sizeof(uint32_t)
+#define BUFFER_SIZE messageLength + sizeof(uint16_t) + 4 * sizeof(uint32_t)
 #define TIMEOUT 1
-
+#define N 5 // window size
+#define MAXSEQ 25600
+#define MAX_PKT 10
 
 typedef struct {
     bool ACK;
@@ -41,7 +45,7 @@ typedef struct {
 } Packet;
 
 void InitPacket(Packet* packet);
-void Serialize(Packet packet, char* buffer);
-void Deserialize(Packet* packet, char* buffer);
+void Serialize(char* buffer, Packet packet);
+void Deserialize(char* buffer, Packet* packet);
 
 #endif

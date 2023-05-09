@@ -8,23 +8,10 @@ error check codes, and sliding window mechanisms.
 #ifndef UDP_TRANSPORT_H
 #define UDP_TRANSPORT_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h> //inet_addr
-#include <netinet/in.h>
-#include <signal.h>
-#include <sys/time.h>
 #include "Utils.h"
 
 
 /* =============== Globalz =============== */
-#define N 5 // window size
-#define MAXSEQ 25600
-#define MAX_PKT 256
-#define BUFFER_SIZE 1024
 
 int base = 0, nextSeqNum = 0, expectedSeqNum;
 

@@ -14,30 +14,30 @@ void ClientSetup(int fd, const struct sockaddr* addr, socklen_t addrLen)
 void SendSYN(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
 {
     Packet synPkt;
-    char serPkt[MAXMSG];
-    InitPacket(synPkt);
+    char serPkt[BUFFER_SIZE];
+    InitPacket(&synPkt);
     synPkt.SYN = 1;
     Serialize(serPkt, synPkt);
-    sendto(fd, serPkt, MAXMSG, 0, destAddr, addrLen);
+    sendto(fd, serPkt, BUFFER_SIZE, 0, destAddr, addrLen);
 }
 
 void SendACK(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
 {
     Packet ackPkt;
-    char serPkt[MAXMSG];
-    InitPacket(ackPkt);
+    char serPkt[BUFFER_SIZE];
+    InitPacket(&ackPkt);
     ackPkt.ACK = 1;
     Serialize(serPkt, ackPkt);
-    sendto(fd, serPkt, MAXMSG, 0, destAddr, addrLen);
+    sendto(fd, serPkt, BUFFER_SIZE, 0, destAddr, addrLen);
 }
 
 void SendSYNACK(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
 {
     Packet synAckPkt;
-    char serPkt[MAXMSG];
-    InitPacket(synAckPkt);
+    char serPkt[BUFFER_SIZE];
+    InitPacket(&synAckPkt);
     synAckPkt.SYN = 1;
     synAckPkt.ACK = 1;
     Serialize(serPkt, synAckPkt);
-    sendto(fd, serPkt, MAXMSG, 0, destAddr, addrLen);
+    sendto(fd, serPkt, BUFFER_SIZE, 0, destAddr, addrLen);
 }
