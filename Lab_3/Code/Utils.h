@@ -21,13 +21,11 @@ such as error handling, logging, or conversion functions.
 #include <netdb.h>
 
 #define PORT 5555
+#define SERVER_IP "127.0.0.1"
 #define hostNameLength 50
 #define messageLength 256
 #define MAXMSG 1024
 
-void InitPacket(Packet* packet);
-void Serialize(Packet packet, char* buffer);
-void Deserialize(Packet* packet, char* buffer)
 
 typedef struct {
     int seqNum;
@@ -40,5 +38,8 @@ typedef struct {
     uint32_t checksum;
 } Packet;
 
+void InitPacket(Packet* packet);
+void Serialize(Packet packet, char* buffer);
+void Deserialize(Packet* packet, char* buffer);
 
 #endif

@@ -5,6 +5,7 @@ sliding window mechanisms, and any other protocol stack functionality.
 */
 
 #include "udp_transport.h"
+#include "Utils.h"
 
  
 Packet make_pkt(int seqNum, char *data, int checksum)
@@ -15,6 +16,34 @@ Packet make_pkt(int seqNum, char *data, int checksum)
     pkt.checksum = checksum;
     return pkt;
 }
+
+
+
+void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr) {
+    unsigned char buffer[BUFFER_SIZE];
+    size_t buffer_size;
+
+    // Serialize the packet into the buffer
+    buffer_size = serialize_packet(pkt, buffer, BUFFER_SIZE);
+
+    // Use sendto() to send the serialized packet using the UDP socket
+    sendto(sockfd, buffer, buffer_size, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
+}
+
+void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr) {
+    unsigned char buffer[BUFFER_SIZE];
+    ssize_t recv_size;
+    socklen_t addr_len = sizeof(*src_addr);
+
+    // Receive data using recvfrom() and store it in the buffer
+    recv_size = recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)src_addr, &addr_len);
+
+    if (recv_size > 0) {
+        // Deserialize the received buffer and populate the packet structure
+        deserialize_packet(pkt, buffer, recv_size);
+    }
+}
+
 
 void refuse_data(char *data)
 {
@@ -75,18 +104,18 @@ int has_seq_num(Packet pkt, int expSeqNum)
     }
 }
 
-void send(char *data)
+void sendData(char* buffer,int sockfd, struct sockaddr_in *dest_addr)
 {
     if (nextSeqNum < base + N)
     {
-        sndpkt[nextSeqNum] = make_pkt(nextSeqNum, data, checksum(data, strlen(data)));
-        udt_send(&sndpkt[nextSeqNum]);
+        sndpkt[nextSeqNum] = make_pkt(nextSeqNum, buffer, checksum(buffer, strlen(buffer)));
+        udt_send(&sndpkt[nextSeqNum], sockfd, SERVER_IP);
         start_timer(nextSeqNum);
         nextSeqNum = (nextSeqNum + 1) % MAXSEQ;
     }
     else
     {
-        refuse_data(data);
+        refuse_data(buffer);
     }
 }
 

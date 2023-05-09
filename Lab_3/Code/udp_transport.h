@@ -17,13 +17,14 @@ error check codes, and sliding window mechanisms.
 #include <netinet/in.h>
 #include <signal.h>
 #include <sys/time.h>
-#include <Utils.h>
+#include "Utils.h"
 
 
 /* =============== Globalz =============== */
 #define N 5 // window size
 #define MAXSEQ 25600
 #define MAX_PKT 256
+#define BUFFER_SIZE 1024
 
 int base = 0, nextSeqNum = 0, expectedSeqNum;
 
@@ -34,6 +35,8 @@ Packet sndpkt[MAX_PKT];
 
 // Functions for packet handling
 Packet make_pkt(int seqNum, char* data, int checksum);
+void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr);
+void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr);
 void refuse_data(char* data);
 void extract_data(Packet pkt, char* data);
 void deliver_data(char* data);
@@ -47,16 +50,11 @@ void duplicate(Packet pkt);
 int has_seq_num(Packet pkt, int seqNum);
 
 // Send function
-void send(char* data);
+void sendData(char* buffer,int sockfd, struct sockaddr_in *dest_addr);
 
 // Functions for timers
 void timeout(int seqNum);
 void start_timer(int seqNum);
 void stop_timer(int seqNum);
-
-
-
-
-
 
 #endif
