@@ -12,6 +12,7 @@ such as error handling, logging, or conversion functions.
 #include <stdbool.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -24,16 +25,17 @@ such as error handling, logging, or conversion functions.
 #define SERVER_IP "127.0.0.1"
 #define hostNameLength 50
 #define messageLength 256
-#define MAXMSG 1024
+#define MAXMSG messageLength + sizeof(uint16_t) + 4 * sizeof(uint32_t)
+#define TIMEOUT 1
 
 
 typedef struct {
-    int seqNum;
-    char data[messageLength];
-    int dataSize;
     bool ACK;
     bool SYN;
     bool FIN;
+    char data[messageLength];
+    int dataSize;
+    int seqNum;
     time_t timestamp;
     uint32_t checksum;
 } Packet;

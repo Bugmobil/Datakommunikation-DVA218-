@@ -1,10 +1,13 @@
 #include "Utils.h"
 
-void SendSYN();
-void SendACK();
-void SendSYNACK();
+void ClientSetup(int fd, const struct sockaddr* destAddr, socklen_t addrLen);
+void ServerSetup(int fd, const struct sockaddr* destAddr, socklen_t addrLen);
 
-void ReceiveSYN();
-void ReceiveACK();
-void ReceiveSYNACK();
+void SendSYN(int fd, const struct sockaddr* destAddr, socklen_t addrLen);
+void SendACK(int fd, const struct sockaddr* destAddr, socklen_t addrLen);
+void SendSYNACK(int fd, const struct sockaddr* destAddr, socklen_t addrLen);
+
+int ReceiveSYN(int fd, struct sockaddr* src_addr, socklen_t* addrlen);
+int ReceiveACK(int fd, struct sockaddr* src_addr, socklen_t* addrlen);
+int ReceiveSYNACK(int fd, struct sockaddr* src_addr, socklen_t* addrlen);
 
