@@ -29,6 +29,7 @@ such as error handling, logging, or conversion functions.
 #define messageLength 256
 #define BUFFER_SIZE messageLength + sizeof(uint16_t) + 4 * sizeof(uint32_t)
 #define TIMEOUT 1
+#define TIMEOUTLONG 5
 #define N 5 // window size
 #define MAXSEQ 25600
 #define MAX_PKT 10
