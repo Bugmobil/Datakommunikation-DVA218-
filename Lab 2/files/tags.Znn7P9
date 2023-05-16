@@ -1,0 +1,19 @@
+CC	Makefile	/^CC = gcc$/;"	m
+CFLAGS	Makefile	/^CFLAGS = -Wall$/;"	m
+PROGRAMS	Makefile	/^PROGRAMS = client server$/;"	m
+PORT	client.c	20;"	d	file:
+hostNameLength	client.c	21;"	d	file:
+messageLength	client.c	22;"	d	file:
+MAXMSG	client.c	23;"	d	file:
+tid	client.c	/^pthread_t tid;$/;"	v
+initSocketAddress	client.c	/^void initSocketAddress(struct sockaddr_in *name, char *hostName, unsigned short int port) {$/;"	f
+writeMessage	client.c	/^void writeMessage(int fileDescriptor, char *message) {$/;"	f
+readMessageFromServer	client.c	/^void readMessageFromServer(int* fileDescriptor)$/;"	f
+main	client.c	/^int main(int argc, char *argv[]) {$/;"	f
+PORT	server.c	22;"	d	file:
+MAXMSG	server.c	23;"	d	file:
+makeSocket	server.c	/^int makeSocket(unsigned short int port)$/;"	f
+readMessageFromClient	server.c	/^int readMessageFromClient(int fileDescriptor) {$/;"	f
+sendMSG	server.c	/^int sendMSG(int fileDescriptor, int msgType) {$/;"	f
+AnnounceNewClient	server.c	/^void AnnounceNewClient(fd_set* activeFdSet, int fd, int clientFD)$/;"	f
+main	server.c	/^int main(int argc, char *argv[])$/;"	f

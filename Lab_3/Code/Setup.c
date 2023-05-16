@@ -38,7 +38,29 @@ void ClientSetup(int fd, struct sockaddr *addr, socklen_t addrLen)
     timeout = 0;
 }
 
-void SendSYN(int fd, const struct sockaddr *destAddr, socklen_t addrLen)
+void ServerSetup(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
+{
+    time_t startTime;
+    time_t currentTime;
+    timeout = TIMEOUT * 1000;
+
+    if(ReceiveSYN(fd, destAddr, addrLen))
+    {
+        SendSYNACK(fd, destAddr, addrLen);
+    }
+
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+
+    while(1)
+    {
+        if(ReceiveACK(fd, destAddr, addrLen)) break;
+        SendSYNACK(fd, destAddr, addrLen);
+    }
+
+    timeout = 0;
+}
+
+void SendSYN(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
 {
     Packet synPkt;
     char serPkt[BUFFER_SIZE];
