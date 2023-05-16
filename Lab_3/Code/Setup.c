@@ -8,15 +8,34 @@
  */
 #include "Setup.h"
 
+int timeout;
+
+int timeout;
+
 void ClientSetup(int fd, const struct sockaddr *addr, socklen_t addrLen)
 {
-    int timeout = TIMEOUT;
+    time_t startTime;
+    time_t currentTime;
+    timeout = TIMEOUT * 1000;
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-    SendSYN(fd, addr, addrLen);
-    ReceiveSYNACK(fd, addr, addrLen);
+
+    while(1)
+    {
+        SendSYN(fd, addr, addrLen);
+        if(ReceiveSYNACK(fd, addr, addrLen)) break;
+    }
+
     SendACK(fd, addr, addrLen);
+
+    time(&startTime);
+    while(1)
+    {
+        if(ReceiveSYNACK(fd, addr, addrLen)) SendACK(fd, addr, addrLen);
+        time(&currentTime);
+        if(currentTime - startTime >= TIMEOUTLONG) break;
+    }
+
     timeout = 0;
-    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 }
 
 void SendSYN(int fd, const struct sockaddr *destAddr, socklen_t addrLen)
@@ -48,4 +67,46 @@ void SendSYNACK(int fd, const struct sockaddr *destAddr, socklen_t addrLen)
     synAckPkt.ACK = 1;
     Serialize(serPkt, synAckPkt);
     sendto(fd, serPkt, BUFFER_SIZE, 0, destAddr, addrLen);
+}
+
+int ReceiveSYN(int fd, struct sockaddr* src_addr, socklen_t* addrLen)
+{
+    Packet synPkt;
+    char buffer[BUFFER_SIZE];
+    InitPacket(&synPkt);
+    if(recvfrom(fd, buffer, BUFFER_SIZE, 0, src_addr, addrLen) != -1)
+    {
+        Deserialize(buffer, &synPkt);
+        if(synPkt.SYN) return 1;
+    }
+
+    return 0;
+}
+
+int ReceiveACK(int fd, struct sockaddr* src_addr, socklen_t* addrLen)
+{
+    Packet ackPkt;
+    char buffer[BUFFER_SIZE];
+    InitPacket(&ackPkt);
+    if(recvfrom(fd, buffer, BUFFER_SIZE, 0, src_addr, addrLen) != -1)
+    {
+        Deserialize(buffer, &ackPkt);
+        if(ackPkt.ACK) return 1;
+    }
+
+    return 0;
+}
+
+int ReceiveSYNACK(int fd, struct sockaddr* src_addr, socklen_t* addrLen)
+{
+    Packet synAckPkt;
+    char buffer[BUFFER_SIZE];
+    InitPacket(&synAckPkt);
+    if(recvfrom(fd, buffer, BUFFER_SIZE, 0, src_addr, addrLen) != -1)
+    {
+        Deserialize(buffer, &synAckPkt);
+        if(synAckPkt.SYN && synAckPkt.ACK) return 1;
+    }
+
+    return 0;
 }
