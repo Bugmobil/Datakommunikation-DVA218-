@@ -1,6 +1,6 @@
 #include "Utils.h"
 
-void ClientSetup(int fd, const struct sockaddr* destAddr, socklen_t addrLen);
+void ClientSetup(int fd, struct sockaddr *addr, socklen_t addrLen);
 void ServerSetup(int fd, const struct sockaddr* destAddr, socklen_t addrLen);
 
 void SendSYN(int fd, const struct sockaddr* destAddr, socklen_t addrLen);

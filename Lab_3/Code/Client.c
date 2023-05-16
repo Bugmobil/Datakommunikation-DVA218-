@@ -21,19 +21,19 @@ void rcvData(void *args)
     {
         Packet pkt;
         rdt_rcv(&pkt, targs->sockfd, targs->addr);
-        if (!checkCorrupt(pkt.data, pkt.dataSize, pkt.checksum))
+        if (!checkCorrupt((uint8_t*)pkt.data, pkt.dataSize, pkt.checksum))
         {
             if(!checkSeqNum(pkt.seqNum, expectedSeqNum))
             {
                 printf(GRN "Expected sequence number received. Sending ACK to server.\n" RESET);
-                sendACK(pkt,args,true);
+                extractAndACK(pkt,args,true);
                 printf(GRN "Packet %d extracted and sent to application layer.\n" RESET, pkt.seqNum);
                 expectedSeqNum = (expectedSeqNum + 1) % MAXSEQ;
                 printf("Expected sequence number incremented to: %d\n", expectedSeqNum);
                 while (outOfOrder_buffer[expectedSeqNum].seqNum == expectedSeqNum)
                 {
                     pkt = outOfOrder_buffer[expectedSeqNum];
-                    sendACK(pkt,args, true);
+                    extractAndACK(pkt,args, true);
                     printf(YEL "Packet %d extracted from out-of-order buffer and sent to application layer.\n" RESET, pkt.seqNum);
                     expectedSeqNum = (expectedSeqNum + 1) % MAXSEQ;
                     printf("Expected sequence number incremented to: %d\n", expectedSeqNum);
@@ -42,14 +42,14 @@ void rcvData(void *args)
             else
             {
                 outOfOrder_buffer[pkt.seqNum] = pkt;
-                sendACK(pkt,args, true);
+                extractAndACK(pkt,args, true);
                 printf(BLU "Packet out of order. Sending ACK to server.\n" RESET);
             }
         }
         else
         {
             printf(RED "Packet is corrupt. Sending NACK to server.\n" RESET);
-            sendACK(pkt,args, false);
+            extractAndACK(pkt,args, false);
         }
     }
 }
@@ -68,8 +68,8 @@ void *sendData(void *args)
 
         if (nextSeqNum < base + N)
         {
-            sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendBuffer, checksum(sendBuffer, strlen(sendBuffer)));
-            udt_send(&sndpkt[nextSeqNum], sockfd, SERVER_IP);
+            sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendBuffer, checksum((uint8_t*)sendBuffer, strlen(sendBuffer)));
+            udt_send(&sndpkt[nextSeqNum], sockfd, dest_addr);
             start_timer(nextSeqNum);
             nextSeqNum = (nextSeqNum + 1) % MAXSEQ;
         }
@@ -103,9 +103,9 @@ int main()
         perror("bind failed");
         exit(EXIT_FAILURE);
     }
-    pthread_create(&rcvThread, NULL, rcvData, (void *)&rcvTargs);
-    pthread_create(&sendThread, NULL, sendData, (void *)&sendTargs);
-    
+    pthread_create(&rcvThread, NULL, (void*)rcvData, (void *)&rcvTargs);
+    pthread_create(&sendThread, NULL, (void*)sendData, (void *)&sendTargs);
+
 
     while (1)
     {

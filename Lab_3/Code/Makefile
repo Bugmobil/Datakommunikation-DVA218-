@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror
-# OBJ = Setup.o Teardown.o udp_transport.o Utils.o
+ OBJ = Setup.o Teardown.o udp_transport.o Utils.o
 
 all: client server
 

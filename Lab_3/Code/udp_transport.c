@@ -46,15 +46,15 @@ void extractAndACK(Packet ACKpkt, struct thread_args *args, bool isACK)
     extract_data(ACKpkt, args->buffer);
     deliver_data(args->buffer);
     sndpkt[expectedSeqNum] = make_ACKpkt(expectedSeqNum, ACK, NACK);
-    udt_send(&sndpkt[expectedSeqNum], args->sockfd, SERVER_IP);
+    udt_send(&sndpkt[expectedSeqNum], args->sockfd, args->addr);
 }
 // Sends the packet to the destination address using the UDP socket
 void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
 {
-    unsigned char buffer[BUFFER_SIZE];
+    unsigned char *buffer[BUFFER_SIZE];
     size_t buffer_size;
 
-    Serialize(buffer, *pkt); // Serialize the packet into a buffer
+    Serialize(&buffer, *pkt); // Serialize the packet into a buffer
 
     // Use sendto() to send the serialized packet using the UDP socket
     int bytes = sendto(sockfd, buffer, buffer_size, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
@@ -142,7 +142,7 @@ void start_timer()
     // Set the timer to not repeat
     timer.it_interval.tv_sec = 0;
     timer.it_interval.tv_usec = 0;
-    
+
     // Start the timer
     setitimer(ITIMER_REAL, &timer, NULL);
 }
