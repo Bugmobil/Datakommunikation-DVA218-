@@ -36,6 +36,8 @@ void Serialize(char *buffer, Packet packet)
         flags |= (1 << 1);
     if (packet.FIN)
         flags |= (1 << 2);
+    if (packet.NACK)
+        flags |= (1 << 3);
 
     memcpy(buffer, &flags, sizeof(uint16_t));
     memcpy(buffer + sizeof(uint16_t), &packet.data, packet.dataSize);
@@ -61,8 +63,9 @@ void Deserialize(char *buffer, Packet *packet)
     memcpy(&checksum, buffer + messageLength + sizeof(uint16_t) + 3 * sizeof(uint32_t), sizeof(uint32_t));
 
     packet->ACK = 1 & (flags >> 0);
-    packet->SYN = 1 & (flags >> 0);
-    packet->FIN = 1 & (flags >> 0);
+    packet->SYN = 1 & (flags >> 1);
+    packet->FIN = 1 & (flags >> 2);
+    packet->NACK = 1 & (flags >> 3);
 
     packet->dataSize = ntohl(dataSize);
     packet->seqNum = ntohl(seqNum);
