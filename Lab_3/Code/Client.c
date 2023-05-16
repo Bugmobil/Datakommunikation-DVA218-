@@ -6,10 +6,11 @@
  ============================================================================
  */
 
-#include "Utils.h"
-#include "udp_transport.h"
 #include <semaphore.h>
 #include <pthread.h>
+#include "Utils.h"
+#include "udp_transport.h"
+#include "Setup.h"
 
 pthread_t sendThread, rcvThread;
 
@@ -76,12 +77,26 @@ void *sendData(void *args)
     }
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    expectedSeqNum = 1;
+    char hostName[hostNameLength];    
     struct thread_args sendTargs, rcvTargs;
-
+    struct hostent *hostInfo;
     socklen_t client_addr_len = sizeof(rcvTargs.addr);
+
+    /* Check arguments */
+    if(argv[1] == NULL)
+    {
+        perror("Usage: client [host name]\n");
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        strncpy(hostName, argv[1], hostNameLength);
+        hostName[hostNameLength - 1] = '\0';
+    }
+
+    hostInfo = gethostbyname(hostName); 
 
     // Create a UDP socket
     sendTargs.sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -92,17 +107,23 @@ int main()
     }
 
     // Set up server address
-    memset(&sendTargs.addr, 0, sizeof(sendTargs.addr));
+    //memset(&sendTargs.addr, 0, sizeof(sendTargs.addr));
     sendTargs.addr->sin_family = AF_INET;
-    sendTargs.addr->sin_addr.s_addr = INADDR_ANY;
+    sendTargs.addr->sin_addr = *(struct in_addr *)hostInfo->h_addr_list[0];
     sendTargs.addr->sin_port = htons(PORT);
 
     // Bind the socket to the server address
     if (bind(sendTargs.sockfd, (const struct sockaddr *)&sendTargs.addr, sizeof(sendTargs.addr)) < 0)
     {
-        perror("bind failed");
+        perror("Bind failed");
         exit(EXIT_FAILURE);
     }
+
+    //void ClientSetup(int fd, const struct sockaddr* destAddr, socklen_t addrLen);
+    ClientSetup(sendTargs.sockfd, (struct sockaddr *)&rcvTargs.addr, client_addr_len);
+
+    expectedSeqNum = 1;
+
     pthread_create(&rcvThread, NULL, rcvData, (void *)&rcvTargs);
     pthread_create(&sendThread, NULL, sendData, (void *)&sendTargs);
     

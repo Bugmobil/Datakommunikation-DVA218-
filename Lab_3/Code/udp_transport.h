@@ -18,7 +18,7 @@
 
 struct thread_args
 {
-    char *buffer;
+    char buffer[messageLength];
     int sockfd;
     struct sockaddr_in *addr;
 };

@@ -10,8 +10,6 @@
 
 int timeout;
 
-int timeout;
-
 void ClientSetup(int fd, const struct sockaddr *addr, socklen_t addrLen)
 {
     time_t startTime;
@@ -63,40 +61,40 @@ void ServerSetup(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
 void SendSYN(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
 {
     Packet synPkt;
-    char serPkt[BUFFER_SIZE];
+    char serPkt[PACKET_SIZE];
     InitPacket(&synPkt);
     synPkt.SYN = 1;
     Serialize(serPkt, synPkt);
-    sendto(fd, serPkt, BUFFER_SIZE, 0, destAddr, addrLen);
+    sendto(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
 }
 
 void SendACK(int fd, const struct sockaddr *destAddr, socklen_t addrLen)
 {
     Packet ackPkt;
-    char serPkt[BUFFER_SIZE];
+    char serPkt[PACKET_SIZE];
     InitPacket(&ackPkt);
     ackPkt.ACK = 1;
     Serialize(serPkt, ackPkt);
-    sendto(fd, serPkt, BUFFER_SIZE, 0, destAddr, addrLen);
+    sendto(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
 }
 
 void SendSYNACK(int fd, const struct sockaddr *destAddr, socklen_t addrLen)
 {
     Packet synAckPkt;
-    char serPkt[BUFFER_SIZE];
+    char serPkt[PACKET_SIZE];
     InitPacket(&synAckPkt);
     synAckPkt.SYN = 1;
     synAckPkt.ACK = 1;
     Serialize(serPkt, synAckPkt);
-    sendto(fd, serPkt, BUFFER_SIZE, 0, destAddr, addrLen);
+    sendto(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
 }
 
 int ReceiveSYN(int fd, struct sockaddr* src_addr, socklen_t* addrLen)
 {
     Packet synPkt;
-    char buffer[BUFFER_SIZE];
+    char buffer[PACKET_SIZE];
     InitPacket(&synPkt);
-    if(recvfrom(fd, buffer, BUFFER_SIZE, 0, src_addr, addrLen) != -1)
+    if(recvfrom(fd, buffer, PACKET_SIZE, 0, src_addr, addrLen) != -1)
     {
         Deserialize(buffer, &synPkt);
         if(synPkt.SYN) return 1;
@@ -108,9 +106,9 @@ int ReceiveSYN(int fd, struct sockaddr* src_addr, socklen_t* addrLen)
 int ReceiveACK(int fd, struct sockaddr* src_addr, socklen_t* addrLen)
 {
     Packet ackPkt;
-    char buffer[BUFFER_SIZE];
+    char buffer[PACKET_SIZE];
     InitPacket(&ackPkt);
-    if(recvfrom(fd, buffer, BUFFER_SIZE, 0, src_addr, addrLen) != -1)
+    if(recvfrom(fd, buffer, PACKET_SIZE, 0, src_addr, addrLen) != -1)
     {
         Deserialize(buffer, &ackPkt);
         if(ackPkt.ACK) return 1;
@@ -122,9 +120,9 @@ int ReceiveACK(int fd, struct sockaddr* src_addr, socklen_t* addrLen)
 int ReceiveSYNACK(int fd, struct sockaddr* src_addr, socklen_t* addrLen)
 {
     Packet synAckPkt;
-    char buffer[BUFFER_SIZE];
+    char buffer[PACKET_SIZE];
     InitPacket(&synAckPkt);
-    if(recvfrom(fd, buffer, BUFFER_SIZE, 0, src_addr, addrLen) != -1)
+    if(recvfrom(fd, buffer, PACKET_SIZE, 0, src_addr, addrLen) != -1)
     {
         Deserialize(buffer, &synAckPkt);
         if(synAckPkt.SYN && synAckPkt.ACK) return 1;

@@ -22,7 +22,7 @@ void InitPacket(Packet *packet)
     packet->checksum = 0;
 }
 
-void Serialize(char *buffer, Packet packet)
+void Serialize(char *serializedPacket, Packet packet)
 {
     uint16_t flags = 0;
     uint32_t dataSize = htonl(packet.dataSize);
@@ -39,15 +39,15 @@ void Serialize(char *buffer, Packet packet)
     if (packet.NACK)
         flags |= (1 << 3);
 
-    memcpy(buffer, &flags, sizeof(uint16_t));
-    memcpy(buffer + sizeof(uint16_t), &packet.data, packet.dataSize);
-    memcpy(buffer + messageLength + sizeof(uint16_t), &dataSize, sizeof(uint32_t));
-    memcpy(buffer + messageLength + sizeof(uint16_t) + sizeof(uint32_t), &seqNum, sizeof(uint32_t));
-    memcpy(buffer + messageLength + sizeof(uint16_t) + 2 * sizeof(uint32_t), &timestamp, sizeof(uint32_t));
-    memcpy(buffer + messageLength + sizeof(uint16_t) + 3 * sizeof(uint32_t), &checksum, sizeof(uint32_t));
+    memcpy(serializedPacket, &flags, sizeof(uint16_t));
+    memcpy(serializedPacket + sizeof(uint16_t), &packet.data, packet.dataSize);
+    memcpy(serializedPacket + messageLength + sizeof(uint16_t), &dataSize, sizeof(uint32_t));
+    memcpy(serializedPacket + messageLength + sizeof(uint16_t) + sizeof(uint32_t), &seqNum, sizeof(uint32_t));
+    memcpy(serializedPacket + messageLength + sizeof(uint16_t) + 2 * sizeof(uint32_t), &timestamp, sizeof(uint32_t));
+    memcpy(serializedPacket + messageLength + sizeof(uint16_t) + 3 * sizeof(uint32_t), &checksum, sizeof(uint32_t));
 }
 
-void Deserialize(char *buffer, Packet *packet)
+void Deserialize(char *serializedPacket, Packet *packet)
 {
     uint16_t flags;
     uint32_t dataSize;
@@ -55,12 +55,12 @@ void Deserialize(char *buffer, Packet *packet)
     uint32_t timestamp;
     uint32_t checksum;
 
-    memcpy(flags, buffer, sizeof(uint16_t));
-    memcpy(&packet->data, buffer + sizeof(uint16_t), packet->dataSize);
-    memcpy(&dataSize, buffer + messageLength + sizeof(uint16_t), sizeof(uint32_t));
-    memcpy(&seqNum, buffer + messageLength + sizeof(uint16_t) + sizeof(uint32_t), sizeof(uint32_t));
-    memcpy(&timestamp, buffer + messageLength + sizeof(uint16_t) + 2 * sizeof(uint32_t), sizeof(uint32_t));
-    memcpy(&checksum, buffer + messageLength + sizeof(uint16_t) + 3 * sizeof(uint32_t), sizeof(uint32_t));
+    memcpy(flags, serializedPacket, sizeof(uint16_t));
+    memcpy(&packet->data, serializedPacket + sizeof(uint16_t), packet->dataSize);
+    memcpy(&dataSize, serializedPacket + messageLength + sizeof(uint16_t), sizeof(uint32_t));
+    memcpy(&seqNum, serializedPacket + messageLength + sizeof(uint16_t) + sizeof(uint32_t), sizeof(uint32_t));
+    memcpy(&timestamp, serializedPacket + messageLength + sizeof(uint16_t) + 2 * sizeof(uint32_t), sizeof(uint32_t));
+    memcpy(&checksum, serializedPacket + messageLength + sizeof(uint16_t) + 3 * sizeof(uint32_t), sizeof(uint32_t));
 
     packet->ACK = 1 & (flags >> 0);
     packet->SYN = 1 & (flags >> 1);

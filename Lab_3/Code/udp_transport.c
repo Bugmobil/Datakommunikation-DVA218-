@@ -51,13 +51,12 @@ void extractAndACK(Packet ACKpkt, struct thread_args *args, bool isACK)
 // Sends the packet to the destination address using the UDP socket
 void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
 {
-    unsigned char buffer[BUFFER_SIZE];
-    size_t buffer_size;
+    unsigned char buffer[PACKET_SIZE];
 
     Serialize(buffer, *pkt); // Serialize the packet into a buffer
 
     // Use sendto() to send the serialized packet using the UDP socket
-    int bytes = sendto(sockfd, buffer, buffer_size, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
+    int bytes = sendto(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
     if (bytes < 0)
     {
         perror("Error sending packet");
@@ -67,12 +66,12 @@ void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
 // Receives the packet from the source address using the UDP socket
 void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr)
 {
-    unsigned char buffer[BUFFER_SIZE];
+    unsigned char buffer[PACKET_SIZE];
     ssize_t recv_size;
     socklen_t addr_len = sizeof(*src_addr);
 
     // Receive data using recvfrom() and store it in the buffer
-    recv_size = recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)src_addr, &addr_len);
+    recv_size = recvfrom(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)src_addr, &addr_len);
 
     if (recv_size > 0)
     {
