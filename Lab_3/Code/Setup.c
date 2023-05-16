@@ -1,8 +1,18 @@
+/*
+ ============================================================================
+ Name        : Setup.c
+ Authors     : Majid Azizi (mai20018) & Andreas Pearson (apn20017)
+ Description : This file contains the implementation of the functions declared
+               in Setup.h. It should include the logic for connection setup.
+ ============================================================================
+ */
 #include "Setup.h"
 
 int timeout;
 
-void ClientSetup(int fd, const struct sockaddr* addr, socklen_t addrLen)
+int timeout;
+
+void ClientSetup(int fd, const struct sockaddr *addr, socklen_t addrLen)
 {
     time_t startTime;
     time_t currentTime;
@@ -60,7 +70,7 @@ void SendSYN(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
     sendto(fd, serPkt, BUFFER_SIZE, 0, destAddr, addrLen);
 }
 
-void SendACK(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
+void SendACK(int fd, const struct sockaddr *destAddr, socklen_t addrLen)
 {
     Packet ackPkt;
     char serPkt[BUFFER_SIZE];
@@ -70,7 +80,7 @@ void SendACK(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
     sendto(fd, serPkt, BUFFER_SIZE, 0, destAddr, addrLen);
 }
 
-void SendSYNACK(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
+void SendSYNACK(int fd, const struct sockaddr *destAddr, socklen_t addrLen)
 {
     Packet synAckPkt;
     char serPkt[BUFFER_SIZE];
