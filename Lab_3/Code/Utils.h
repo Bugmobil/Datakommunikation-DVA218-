@@ -1,8 +1,13 @@
 /*
-This header file contains declarations of any utility functions or 
-data structures you might need for your implementation, 
-such as error handling, logging, or conversion functions.
-*/
+ ============================================================================
+ Name        : Utils.h
+ Authors     : Majid Azizi (mai20018) & Andreas Pearson (apn20017)
+ Description : This header file contains declarations of any utility functions or
+                data structures you might need for your implementation,
+                such as error handling, logging, or conversion functions.
+ ============================================================================
+ */
+
 #ifndef UTILS_H
 #define UTILS_H
 
@@ -33,10 +38,14 @@ such as error handling, logging, or conversion functions.
 #define MAXSEQ 25600
 #define MAX_PKT 10
 
-typedef struct {
+char hostName[hostNameLength];
+
+typedef struct
+{
     bool ACK;
     bool SYN;
     bool FIN;
+    bool NACK;
     char data[messageLength];
     int dataSize;
     int seqNum;
@@ -44,8 +53,21 @@ typedef struct {
     uint32_t checksum;
 } Packet;
 
-void InitPacket(Packet* packet);
-void Serialize(char* buffer, Packet packet);
-void Deserialize(char* buffer, Packet* packet);
+/* Terminal Colors */
+
+/*Example: printf(RED "This text will be red\n" RESET); */
+#define RED   "\x1B[31m"
+#define GRN   "\x1B[32m"
+#define YEL   "\x1B[33m"
+#define BLU   "\x1B[34m"
+#define MAG   "\x1B[35m"
+#define CYN   "\x1B[36m"
+#define RESET "\x1B[0m"
+
+/* End of Terminal Colors */
+
+void InitPacket(Packet *packet);
+void Serialize(char *buffer, Packet packet);
+void Deserialize(char *buffer, Packet *packet);
 
 #endif
