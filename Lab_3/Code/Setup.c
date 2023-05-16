@@ -10,7 +10,7 @@
 
 int timeout;
 
-void ClientSetup(int fd, const struct sockaddr *addr, socklen_t addrLen)
+void ClientSetup(int fd, struct sockaddr *addr, socklen_t addrLen)
 {
     time_t startTime;
     time_t currentTime;
@@ -20,7 +20,7 @@ void ClientSetup(int fd, const struct sockaddr *addr, socklen_t addrLen)
     while(1)
     {
         SendSYN(fd, addr, addrLen);
-        if(ReceiveSYNACK(fd, addr, addrLen)) break;
+        if(ReceiveSYNACK(fd, addr, &addrLen)) break;
     }
 
     SendACK(fd, addr, addrLen);
@@ -28,7 +28,7 @@ void ClientSetup(int fd, const struct sockaddr *addr, socklen_t addrLen)
     time(&startTime);
     while(1)
     {
-        if(ReceiveSYNACK(fd, addr, addrLen)) SendACK(fd, addr, addrLen);
+        if(ReceiveSYNACK(fd, addr, &addrLen)) SendACK(fd, addr, addrLen);
         time(&currentTime);
         if(currentTime - startTime >= TIMEOUTLONG) break;
     }
