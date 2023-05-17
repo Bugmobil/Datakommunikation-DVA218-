@@ -30,6 +30,7 @@ void ClientSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
     }
 
     timeout = 0;
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 }
 
 void ServerSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
@@ -50,6 +51,7 @@ void ServerSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
     }
 
     timeout = 0;
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 }
 
 void SendSYN(int fd, struct sockaddr* destAddr, socklen_t addrLen)

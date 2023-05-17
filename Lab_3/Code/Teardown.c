@@ -13,6 +13,9 @@ void ClientTeardown(int fd, struct sockaddr* addr, socklen_t* addrLen)
         if(ReceiveACK(fd, addr, addrLen)) break; //If the condition is not met, it has timed out or something has gone horribly wrong
         SendFINACK(fd, addr, *addrLen);
     }
+    
+    timeout = 0;
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 }
 
 void ServerTeardown(int fd, struct sockaddr* addr, socklen_t* addrLen)
@@ -40,6 +43,7 @@ void ServerTeardown(int fd, struct sockaddr* addr, socklen_t* addrLen)
     }
 
     timeout = 0;
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 }
 
 void SendFIN(int fd, struct sockaddr* destAddr, socklen_t addrLen)
