@@ -75,7 +75,7 @@ void Deserialize(char *serializedPacket, Packet *packet)
 
 void StartTimer(time_t* startTime)
 {
-    time(startTime);
+    *startTime = time(NULL);
 }
 
 int CheckTime(time_t startTime, int timeout)
@@ -83,4 +83,31 @@ int CheckTime(time_t startTime, int timeout)
     time_t currentTime;
     time(&currentTime);
     return (currentTime - startTime >= timeout) ? 1 : 0;
+}
+
+int GiveRandomNumber(int from, int to)
+{
+	return rand() % (to - from + 1) + from;
+}
+
+void CorruptPacket(char* packet)
+{
+    int errorRate;
+    srand(time(NULL));
+    errorRate = GiveRandomNumber(33, 67);
+    CorruptPacketPercentage(packet, errorRate);
+}
+
+void CorruptPacketPercentage(char* packet, int errorRate)
+{
+    int i, randVal;
+    srand(time(NULL));
+
+    for (i = 0; i < PACKET_SIZE; i++)
+    {
+        if(GiveRandomNumber(1, 100) <= errorRate)
+        {
+            packet[i] ^= (1 << (rand() % 8));
+        }
+    }
 }
