@@ -55,7 +55,7 @@ void Deserialize(char *serializedPacket, Packet *packet)
     uint32_t timestamp;
     uint32_t checksum;
 
-    memcpy(flags, serializedPacket, sizeof(uint16_t));
+    memcpy(&flags, serializedPacket, sizeof(uint16_t));
     memcpy(&packet->data, serializedPacket + sizeof(uint16_t), packet->dataSize);
     memcpy(&dataSize, serializedPacket + messageLength + sizeof(uint16_t), sizeof(uint32_t));
     memcpy(&seqNum, serializedPacket + messageLength + sizeof(uint16_t) + sizeof(uint32_t), sizeof(uint32_t));

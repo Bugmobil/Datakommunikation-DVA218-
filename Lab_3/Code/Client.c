@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
     }
 
     //void ClientSetup(int fd, const struct sockaddr* destAddr, socklen_t addrLen);
-    ClientSetup(sendTargs.sockfd, (struct sockaddr *)&rcvTargs.addr, client_addr_len);
+    ClientSetup(sendTargs.sockfd, (struct sockaddr *)&rcvTargs.addr, &client_addr_len);
 
     expectedSeqNum = 1;
 

@@ -1,40 +1,45 @@
 #include "Teardown.h"
 
-int timeout;
-
-void ClientTeardown(int fd, struct sockaddr *addr, socklen_t addrLen)
+void ClientTeardown(int fd, struct sockaddr* addr, socklen_t* addrLen)
 {
-    if(ReceiveFIN(fd, addr, addrLen)) SendFINACK(fd, addr, addrLen);
+    int timeout = TIMEOUT * 1000;
 
-    timeout = TIMEOUT * 1000;
+    if(ReceiveFIN(fd, addr, addrLen)) SendFINACK(fd, addr, *addrLen);
+
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)); //Setting timeout for recvfrom()
 
     while (1)
     {
         if(ReceiveACK(fd, addr, addrLen)) break; //If the condition is not met, it has timed out or something has gone horribly wrong
-        SendFINACK(fd, addr, addrLen);
+        SendFINACK(fd, addr, *addrLen);
     }
 }
 
-void ServerTeardown(int fd, struct sockaddr* addr, socklen_t addrLen)
+void ServerTeardown(int fd, struct sockaddr* addr, socklen_t* addrLen)
 {
+    int timeout = TIMEOUT * 1000;
     time_t startTime;
-    SendFIN(fd, addr, addrLen);
+
+    SendFIN(fd, addr, *addrLen);
+
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)); //Setting timeout for recvfrom()
 
     while (1)
     {
         if(ReceiveFINACK(fd, addr, addrLen)) break;
-        SendFIN(fd, addr, addrLen);
+        SendFIN(fd, addr, *addrLen);
     }
 
-    SendACK(fd, addr, addrLen);
+    SendACK(fd, addr, *addrLen);
 
-    StartTimeout(startTime);
+    StartTimeout(&startTime);
     while (1)
     {
-        if(ReceiveFINACK(fd, addr, addrLen)) SendACK(fd, addr, addrLen);
+        if(ReceiveFINACK(fd, addr, addrLen)) SendACK(fd, addr, *addrLen);
         if(CheckTimeout(startTime, TIMEOUTLONG)) break;
     }
+
+    timeout = 0;
 }
 
 void SendFIN(int fd, struct sockaddr* destAddr, socklen_t addrLen)
