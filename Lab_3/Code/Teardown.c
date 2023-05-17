@@ -16,23 +16,23 @@ void ClientTeardown(int fd, struct sockaddr *addr, socklen_t addrLen)
     }
 }
 
-void ServerTeardown(int fd, struct sockaddr* destAddr, socklen_t addrLen)
+void ServerTeardown(int fd, struct sockaddr* addr, socklen_t addrLen)
 {
     time_t startTime;
-    SendFIN(fd, destAddr, addrLen);
+    SendFIN(fd, addr, addrLen);
 
     while (1)
     {
-        if(ReceiveFINACK(fd, destAddr, addrLen)) break;
-        SendFIN(fd, destAddr, addrLen);
+        if(ReceiveFINACK(fd, addr, addrLen)) break;
+        SendFIN(fd, addr, addrLen);
     }
 
-    SendACK(fd, destAddr, addrLen);
+    SendACK(fd, addr, addrLen);
 
     StartTimeout(startTime);
     while (1)
     {
-        if(ReceiveFINACK(fd, destAddr, addrLen)) SendACK(fd, destAddr, addrLen);
+        if(ReceiveFINACK(fd, addr, addrLen)) SendACK(fd, addr, addrLen);
         if(CheckTimeout(startTime, TIMEOUTLONG)) break;
     }
 }

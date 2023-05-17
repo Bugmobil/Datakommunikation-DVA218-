@@ -10,7 +10,7 @@
 
 int timeout;
 
-void ClientSetup(int fd, struct sockaddr *addr, socklen_t addrLen)
+void ClientSetup(int fd, struct sockaddr* addr, socklen_t addrLen)
 {
     time_t startTime;
     timeout = TIMEOUT * 1000;
@@ -34,21 +34,21 @@ void ClientSetup(int fd, struct sockaddr *addr, socklen_t addrLen)
     timeout = 0;
 }
 
-void ServerSetup(int fd, struct sockaddr* destAddr, socklen_t* addrLen)
+void ServerSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
 {
     timeout = TIMEOUT * 1000;
 
-    if(ReceiveSYN(fd, destAddr, addrLen))
+    if(ReceiveSYN(fd, addr, addrLen))
     {
-        SendSYNACK(fd, destAddr, *addrLen);
+        SendSYNACK(fd, addr, *addrLen);
     }
 
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
     while(1)
     {
-        if(ReceiveACK(fd, destAddr, addrLen)) break;
-        SendSYNACK(fd, destAddr, *addrLen);
+        if(ReceiveACK(fd, addr, addrLen)) break;
+        SendSYNACK(fd, addr, *addrLen);
     }
 
     timeout = 0;
