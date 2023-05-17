@@ -15,6 +15,7 @@
 Packet make_pkt(int seqNum, char *data, int checksum)
 {
     Packet pkt;
+    InitPacket(&pkt);
     pkt.seqNum = seqNum;
     strncpy(pkt.data, data, sizeof(pkt.data));
     pkt.checksum = checksum;
@@ -26,6 +27,7 @@ Packet make_pkt(int seqNum, char *data, int checksum)
 Packet make_ACKpkt(int seqNum, bool ACK, bool NACK)
 {
     Packet ACKpkt;
+    InitPacket(&ACKpkt);
     ACKpkt.seqNum = seqNum;
     ACKpkt.ACK = ACK;
     ACKpkt.NACK = NACK;
@@ -35,19 +37,17 @@ Packet make_ACKpkt(int seqNum, bool ACK, bool NACK)
     return ACKpkt;
 }
 
-void extractAndACK(Packet ACKpkt, struct thread_args *args, bool isACK)
+// Prints the packet's information
+void printPacket (Packet pkt)
 {
-    bool ACK = false, NACK = false;
-    if(isACK)
-        ACK = true;
-    else
-        NACK = true;
-
-    extract_data(ACKpkt, args->buffer);
-    deliver_data(args->buffer);
-    sndpkt[expectedSeqNum] = make_ACKpkt(expectedSeqNum, ACK, NACK);
-    udt_send(&sndpkt[expectedSeqNum], args->sockfd, args->addr);
+    printf("┌ ・・・・・・・・・・・・・・ ┐");
+    printf("┊DATA: %s\n", pkt.data);
+    printf("┊SEQ NUM: %d\n", pkt.seqNum);
+    printf("┊ACK/NACK: %d/%d\n", pkt.ACK, pkt.NACK);
+    printf("┊CHECKSUM: %d\n", pkt.checksum);
+    printf("└ ・・・・・・・・・・・・・・ ┘");
 }
+
 // Sends the packet to the destination address using the UDP socket
 void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
 {
@@ -80,19 +80,26 @@ void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr)
     }
 }
 
-void refuse_data(char *data)
+// Extracts the ACK packet and delivers the data
+void extractAndDeliver(Packet ACKpkt)
 {
-    printf("Refusing data: %s. Sliding window is full.\n", data);
+    char rcvMsg[messageLength];
+    estrcpy(rcvMsg, ACKpkt.data);
+    printf("Received data: %s\n", rcvMsg);
 }
 
-void extract_data(Packet pkt, char *data)
+// Sends an ACK or NACK packet to the sender
+void ACKpkt (struct thread_args *args, bool isACK)
 {
-    strcpy(data, pkt.data);
-}
+    bool ACK = false, NACK = false;
+    if(isACK)
+        ACK = true;
+    else
+        NACK = true;
 
-void deliver_data(char *data)
-{
-    // TODO: Deliver the received data to the application
+    sndpkt[expectedSeqNum] = make_ACKpkt(expectedSeqNum, ACK, NACK);
+    udt_send(&sndpkt[expectedSeqNum], args->sockfd, args->addr);
+    printf("Sent ACK: %d\n", expectedSeqNum);
 }
 
 /*
@@ -130,6 +137,9 @@ int checkSeqNum(int rcvSeqNum, int expSeqNum)
     return rcvSeqNum - expSeqNum;
 }
 
+/*
+Timer functions
+*/
 void start_timer(struct thread_args *args, int seqNum)
 {
     pthread_create(&timerThreads[seqNum], NULL, timeout, (void *)args);
@@ -158,55 +168,7 @@ void *timeout(void *arg) {
             udt_send(&sndpkt[targs->seqNum], targs->sockfd, targs->addr);
         }
     }
-    
+
     return NULL;
 }
 
-// This function checks if the packets in the buffer have timed out
-/*void timeout(void *args, int seqNum)
-{
-    struct thread_args *targs = (struct thread_args *)args;
-    int sockfd = targs->sockfd;
-    char *dest_addr = targs->addr;
-
-    while (1)
-    {
-        for (int i = 0; i < N; i++)
-        {
-            int timeLeft = sndpkt[i].timestamp + TIMEOUT - time(NULL);
-            if (timeLeft < 0 && sndpkt[i].ACK == 0)
-            {
-                udt_send(&sndpkt[i], sockfd, dest_addr);
-                StartTimer(sndpkt[nextSeqNum].timestamp);
-            }
-        }
-        usleep(100000); // Prevent resource hogging
-        if(nextSeqNum == base)
-            break;
-    }
-    // TODO: Implement a way to stop the timer if all packets have been ACKed
-}
-*/
-/* Removes the packet from the buffer and hence stops the timer */
-/*void stop_timer(int seqNum)
-{
-    for (int i = 0; i < MAX_PKT; i++)
-    {
-        if (sndpkt[i].seqNum == seqNum)
-        {
-            sndpkt[i] = make_pkt(NULL, NULL, NULL);
-            break;
-        }
-    }
-}*/
-
-
-void printPacket (Packet pkt)
-{
-    printf("┌ ・・・・・・・・・・・・・・ ┐");
-    printf("┊DATA: %s\n", pkt.data);
-    printf("┊SEQ NUM: %d\n", pkt.seqNum);
-    printf("┊ACK/NACK: %d/%d\n", pkt.ACK, pkt.NACK);
-    printf("┊CHECKSUM: %d\n", pkt.checksum);
-    printf("└ ・・・・・・・・・・・・・・ ┘");
-}

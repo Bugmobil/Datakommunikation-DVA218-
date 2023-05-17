@@ -20,21 +20,27 @@ void *sendData(void *args)
 {
     struct thread_args *targs = (struct thread_args *)args;
     char *sendMSG[messageLength];
-
+    printf("Enter a message to send to the client: ");
     while (runThreads)
     {
-        printf("Enter a message to send to the client: ");
+        printf("\n");
         fgets(sendMSG, messageLength, stdin);
-        sendMSG[strcspn(sendMSG, "\n")] = '\0';
-
-        if (nextSeqNum < base + N)
-        {
-            // Create packet, send it, and store it in the buffer
-            sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG, checksum(sendMSG, strlen(sendMSG)));
-            udt_send(&sndpkt[nextSeqNum], targs->sockfd, args->addr);
-            targs->seqNum = nextSeqNum;
-            start_timer(targs,nextSeqNum);
-            nextSeqNum = (nextSeqNum + 1) % MAXSEQ;
+        sendMSG[messageLength - 1] = '\0';
+        if(strncmp(messageString,"quit\n",messageLength) != 0){
+            if (nextSeqNum < base + N)
+            {
+                // Create packet, send it, and store it in the buffer
+                sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG, checksum(sendMSG, strlen(sendMSG)));
+                udt_send(&sndpkt[nextSeqNum], targs->sockfd, args->addr);
+                targs->seqNum = nextSeqNum;
+                start_timer(targs,nextSeqNum);
+                nextSeqNum = (nextSeqNum + 1) % MAXSEQ;
+            }
+        }
+        else {  
+            close(targs->sockfd);
+            runThreads = false;
+            exit(EXIT_SUCCESS);
         }
     }
 }

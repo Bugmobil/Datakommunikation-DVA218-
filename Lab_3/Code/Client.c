@@ -14,7 +14,7 @@
 
 pthread_t sendThread, rcvThread;
 
-void rcvData(void *args)
+void dataHandling(void *args)
 {
     struct thread_args *targs = (struct thread_args *)args;
     
@@ -26,15 +26,19 @@ void rcvData(void *args)
         {
             if(!checkSeqNum(pkt.seqNum, expectedSeqNum))
             {
+                ACKpkt(targs, true);
                 printf(GRN "Expected sequence number received. Sending ACK to server.\n" RESET);
-                extractAndACK(pkt,args,true);
+                
+                extractAndDeliver(pkt);
                 printf(GRN "Packet %d extracted and sent to application layer.\n" RESET, pkt.seqNum);
+                
                 expectedSeqNum = (expectedSeqNum + 1) % MAXSEQ;
                 printf("Expected sequence number incremented to: %d\n", expectedSeqNum);
+               
                 while (outOfOrder_buffer[expectedSeqNum].seqNum == expectedSeqNum)
                 {
                     pkt = outOfOrder_buffer[expectedSeqNum];
-                    extractAndACK(pkt,args, true);
+                    extractAndDeliver(pkt);
                     printf(YEL "Packet %d extracted from out-of-order buffer and sent to application layer.\n" RESET, pkt.seqNum);
                     expectedSeqNum = (expectedSeqNum + 1) % MAXSEQ;
                     printf("Expected sequence number incremented to: %d\n", expectedSeqNum);
@@ -43,14 +47,14 @@ void rcvData(void *args)
             else
             {
                 outOfOrder_buffer[pkt.seqNum] = pkt;
-                extractAndACK(pkt,args, true);
+                ACKpkt(targs, true);
                 printf(BLU "Packet out of order. Sending ACK to server.\n" RESET);
             }
         }
         else
         {
             printf(RED "Packet is corrupt. Sending NACK to server.\n" RESET);
-            extractAndACK(pkt,args, false);
+            sendACK(targs, false);
         }
     }
 }
@@ -80,7 +84,6 @@ void *sendData(void *args)
 int main(int argc, char *argv[])
 {
     char hostName[hostNameLength];    
-    struct thread_args sendTargs, rcvTargs;
     struct hostent *hostInfo;
     socklen_t client_addr_len = sizeof(rcvTargs.addr);
 
@@ -124,22 +127,9 @@ int main(int argc, char *argv[])
 
     expectedSeqNum = 1;
 
-    pthread_create(&rcvThread, NULL, (void*)rcvData, (void *)&rcvTargs);
-    pthread_create(&sendThread, NULL, (void*)sendData, (void *)&sendTargs);
+    pthread_create(&rcvThread, NULL, (void*)dataHandling, (void *)&rcvTargs);
+    //pthread_create(&sendThread, NULL, (void*)sendData, (void *)&sendTargs);
 
-
-    while (1)
-    {
-        int recv_len = recvfrom(sendTargs.sockfd, sendTargs.buffer, messageLength, 0, (struct sockaddr *)&rcvTargs.addr, &client_addr_len);
-        if (recv_len < 0)
-        {
-            perror("recvfrom failed");
-            exit(EXIT_FAILURE);
-        }
-
-        sendTargs.buffer[recv_len] = '\0';
-        printf("Received message from client: %s\n", sendTargs.buffer);
-    }
 
     close(sendTargs.sockfd);
     return 0;
