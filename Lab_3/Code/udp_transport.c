@@ -53,7 +53,7 @@ void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
 {
     char buffer[PACKET_SIZE];
 
-    Serialize(&buffer, *pkt); // Serialize the packet into a buffer
+    Serialize(buffer, *pkt); // Serialize the packet into a buffer
 
     // Use sendto() to send the serialized packet using the UDP socket
     int bytes = sendto(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
@@ -118,8 +118,7 @@ Returns 0 if the packet is not corrupted.
 */
 int checkCorrupt(const uint8_t *data, size_t len, uint32_t rcvChecksum)
 {
-    // TODO: Dear Mr Azizizizizizizizizizizi, you can not simply take the strlen of a uint_32. Love (not really), Andreas
-    return rcvChecksum - checksum(data, strlen(data));
+    return rcvChecksum - checksum(data, len);
 }
 
 /*
@@ -131,24 +130,65 @@ int checkSeqNum(int rcvSeqNum, int expSeqNum)
     return rcvSeqNum - expSeqNum;
 }
 
-void start_timer()
+void start_timer(struct thread_args *args, int seqNum)
 {
-    struct itimerval timer;
+    pthread_create(&timerThreads[seqNum], NULL, timeout, (void *)args);
+}
+void stop_timer(int seqNum)
+{
+    pthread_cancel(timerThreads[seqNum]);
+}
+void restart_timer(struct thread_args *args, int seqNum)
+{
+    stop_timer(seqNum);
+    start_timer(args, seqNum);
+}
+void *timeout(void *arg) {
+    struct thread_args *targs = (struct thread_args *)arg;
+    
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
-    // Set the timer interval to 1 second
-    timer.it_value.tv_sec = TIMEOUT;
-    timer.it_value.tv_usec = 0;
-
-    // Set the timer to not repeat
-    timer.it_interval.tv_sec = 0;
-    timer.it_interval.tv_usec = 0;
-
-    // Start the timer
-    setitimer(ITIMER_REAL, &timer, NULL);
+    while (runThreads) {
+        // Sleep for the timeout duration
+        sleep(TIMEOUT);
+        // Check if the packet has been acknowledged
+        if (!sndpkt[targs->seqNum].ACK && !sndpkt[targs->seqNum].NACK) {
+            // If not, retransmit the packet
+            udt_send(&sndpkt[targs->seqNum], targs->sockfd, targs->addr);
+        }
+    }
+    
+    return NULL;
 }
 
+// This function checks if the packets in the buffer have timed out
+/*void timeout(void *args, int seqNum)
+{
+    struct thread_args *targs = (struct thread_args *)args;
+    int sockfd = targs->sockfd;
+    char *dest_addr = targs->addr;
+
+    while (1)
+    {
+        for (int i = 0; i < N; i++)
+        {
+            int timeLeft = sndpkt[i].timestamp + TIMEOUT - time(NULL);
+            if (timeLeft < 0 && sndpkt[i].ACK == 0)
+            {
+                udt_send(&sndpkt[i], sockfd, dest_addr);
+                StartTimer(sndpkt[nextSeqNum].timestamp);
+            }
+        }
+        usleep(100000); // Prevent resource hogging
+        if(nextSeqNum == base)
+            break;
+    }
+    // TODO: Implement a way to stop the timer if all packets have been ACKed
+}
+*/
 /* Removes the packet from the buffer and hence stops the timer */
-void stop_timer(int seqNum)
+/*void stop_timer(int seqNum)
 {
     for (int i = 0; i < MAX_PKT; i++)
     {
@@ -158,7 +198,7 @@ void stop_timer(int seqNum)
             break;
         }
     }
-}
+}*/
 
 
 void printPacket (Packet pkt)
