@@ -13,7 +13,6 @@ int timeout;
 void ClientSetup(int fd, struct sockaddr *addr, socklen_t addrLen)
 {
     time_t startTime;
-    time_t currentTime;
     timeout = TIMEOUT * 1000;
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
@@ -25,12 +24,11 @@ void ClientSetup(int fd, struct sockaddr *addr, socklen_t addrLen)
 
     SendACK(fd, addr, addrLen);
 
-    time(&startTime);
+    StartTimeout(&startTime);
     while(1)
     {
         if(ReceiveSYNACK(fd, addr, &addrLen)) SendACK(fd, addr, addrLen);
-        time(&currentTime);
-        if(currentTime - startTime >= TIMEOUTLONG) break;
+        if(CheckTimeout(startTime, TIMEOUTLONG)) break;
     }
 
     timeout = 0;
@@ -95,7 +93,7 @@ int ReceiveSYN(int fd, struct sockaddr* src_addr, socklen_t* addrLen)
     if(recvfrom(fd, buffer, PACKET_SIZE, 0, src_addr, addrLen) != -1)
     {
         Deserialize(buffer, &synPkt);
-        if(synPkt.SYN) return 1;
+        return (synPkt.SYN) ? 1 : 0;
     }
 
     return 0;
@@ -109,7 +107,7 @@ int ReceiveACK(int fd, struct sockaddr* src_addr, socklen_t* addrLen)
     if(recvfrom(fd, buffer, PACKET_SIZE, 0, src_addr, addrLen) != -1)
     {
         Deserialize(buffer, &ackPkt);
-        if(ackPkt.ACK) return 1;
+        return (ackPkt.ACK) ? 1 : 0;
     }
 
     return 0;
@@ -123,7 +121,7 @@ int ReceiveSYNACK(int fd, struct sockaddr* src_addr, socklen_t* addrLen)
     if(recvfrom(fd, buffer, PACKET_SIZE, 0, src_addr, addrLen) != -1)
     {
         Deserialize(buffer, &synAckPkt);
-        if(synAckPkt.SYN && synAckPkt.ACK) return 1;
+        return (synAckPkt.SYN && synAckPkt.ACK) ? 1 : 0;
     }
 
     return 0;
