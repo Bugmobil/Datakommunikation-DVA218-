@@ -51,7 +51,7 @@ void extractAndACK(Packet ACKpkt, struct thread_args *args, bool isACK)
 // Sends the packet to the destination address using the UDP socket
 void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
 {
-    unsigned char buffer[PACKET_SIZE];
+    char buffer[PACKET_SIZE];
 
     Serialize(&buffer, *pkt); // Serialize the packet into a buffer
 
@@ -66,7 +66,7 @@ void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
 // Receives the packet from the source address using the UDP socket
 void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr)
 {
-    unsigned char buffer[PACKET_SIZE];
+    char buffer[PACKET_SIZE];
     ssize_t recv_size;
     socklen_t addr_len = sizeof(*src_addr);
 
@@ -118,6 +118,7 @@ Returns 0 if the packet is not corrupted.
 */
 int checkCorrupt(const uint8_t *data, size_t len, uint32_t rcvChecksum)
 {
+    // TODO: Dear Mr Azizizizizizizizizizizi, you can not simply take the strlen of a uint_32. Love (not really), Andreas
     return rcvChecksum - checksum(data, strlen(data));
 }
 
