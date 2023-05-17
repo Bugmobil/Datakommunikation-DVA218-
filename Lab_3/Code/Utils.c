@@ -100,12 +100,12 @@ void CorruptPacket(char* packet)
 
 void CorruptPacketPercentage(char* packet, int errorRate)
 {
-    int i, randVal;
+    size_t i;
     srand(time(NULL));
 
     for (i = 0; i < PACKET_SIZE; i++)
     {
-        if(GiveRandomNumber(1, 100) <= errorRate)
+        if(packet[i] != '\0' && GiveRandomNumber(1, 100) <= errorRate)
         {
             packet[i] ^= (1 << (rand() % 8));
         }

@@ -76,4 +76,9 @@ void Deserialize(char *buffer, Packet *packet);
 void StartTimer(time_t* startTime);
 int CheckTime(time_t startTime, int timeout);
 
+int GiveRandomNumber(int from, int to);
+
+void CorruptPacket(char* packet);
+void CorruptPacketPercentage(char* packet, int errorRate);
+
 #endif
