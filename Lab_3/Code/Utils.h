@@ -41,6 +41,8 @@
 
 char hostName[hostNameLength];
 
+
+
 typedef struct
 {
     bool ACK;
