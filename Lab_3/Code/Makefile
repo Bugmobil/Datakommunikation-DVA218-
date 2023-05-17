@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Wno-unused-parameter
  OBJ = Setup.o Teardown.o udp_transport.o Utils.o
 
 all: client server

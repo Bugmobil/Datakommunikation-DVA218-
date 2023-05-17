@@ -1,10 +1,10 @@
 #include "Teardown.h"
 
-void ClientTeardown(int fd, const struct sockaddr *addr, socklen_t addrLen);
+void ClientTeardown(int fd, struct sockaddr *addr, socklen_t addrLen);
 
-void ServerTeardown(int fd, const struct sockaddr* destAddr, socklen_t addrLen);
+void ServerTeardown(int fd, struct sockaddr* destAddr, socklen_t addrLen);
 
-void SendFIN(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
+void SendFIN(int fd, struct sockaddr* destAddr, socklen_t addrLen)
 {
     Packet finPkt;
     char serPkt[PACKET_SIZE];
@@ -14,7 +14,7 @@ void SendFIN(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
     sendto(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
 }
 
-void SendFINACK(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
+void SendFINACK(int fd, struct sockaddr* destAddr, socklen_t addrLen)
 {
     Packet finAckPkt;
     char serPkt[PACKET_SIZE];

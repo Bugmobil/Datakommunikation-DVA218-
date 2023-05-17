@@ -36,15 +36,13 @@ void ClientSetup(int fd, struct sockaddr *addr, socklen_t addrLen)
     timeout = 0;
 }
 
-void ServerSetup(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
+void ServerSetup(int fd, struct sockaddr* destAddr, socklen_t* addrLen)
 {
-    time_t startTime;
-    time_t currentTime;
     timeout = TIMEOUT * 1000;
 
     if(ReceiveSYN(fd, destAddr, addrLen))
     {
-        SendSYNACK(fd, destAddr, addrLen);
+        SendSYNACK(fd, destAddr, *addrLen);
     }
 
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
@@ -52,13 +50,13 @@ void ServerSetup(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
     while(1)
     {
         if(ReceiveACK(fd, destAddr, addrLen)) break;
-        SendSYNACK(fd, destAddr, addrLen);
+        SendSYNACK(fd, destAddr, *addrLen);
     }
 
     timeout = 0;
 }
 
-void SendSYN(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
+void SendSYN(int fd, struct sockaddr* destAddr, socklen_t addrLen)
 {
     Packet synPkt;
     char serPkt[PACKET_SIZE];
@@ -68,7 +66,7 @@ void SendSYN(int fd, const struct sockaddr* destAddr, socklen_t addrLen)
     sendto(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
 }
 
-void SendACK(int fd, const struct sockaddr *destAddr, socklen_t addrLen)
+void SendACK(int fd, struct sockaddr *destAddr, socklen_t addrLen)
 {
     Packet ackPkt;
     char serPkt[PACKET_SIZE];
@@ -78,7 +76,7 @@ void SendACK(int fd, const struct sockaddr *destAddr, socklen_t addrLen)
     sendto(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
 }
 
-void SendSYNACK(int fd, const struct sockaddr *destAddr, socklen_t addrLen)
+void SendSYNACK(int fd, struct sockaddr *destAddr, socklen_t addrLen)
 {
     Packet synAckPkt;
     char serPkt[PACKET_SIZE];
