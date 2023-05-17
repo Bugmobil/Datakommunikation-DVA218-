@@ -18,7 +18,7 @@
 
 struct thread_args
 {
-    char buffer[messageLength];
+    int seqNum;
     int sockfd;
     struct sockaddr_in *addr;
 };
@@ -28,11 +28,13 @@ struct thread_args
 /* =============== Globalz =============== */
 
 int base = 0, nextSeqNum = 0, expectedSeqNum = 0;
+bool runThreads = true;
 
 // Arrays
 Packet sndpkt[MAX_PKT] = {0};
 Packet outOfOrder_buffer[MAXSEQ] = {0};
 int ACK_buffer[MAXSEQ] = {0};
+pthread_t timerThreads[MAXSEQ] = {0};
 
 /* =============== End of Globalz =============== */
 
@@ -60,9 +62,11 @@ int checkCorrupt(const uint8_t *data, size_t len, uint32_t rcvChecksum);
 int checkSeqNum(int rcvSeqNum, int expSeqNum);
 
 // Functions for timers
-// void timeout(int seqNum);
-void start_timer();
+void start_timer(struct thread_args *args, int seqNum);
+void restart_timer(struct thread_args *args, int seqNum);
 void stop_timer(int seqNum);
+void *timeout(void *arg);
+
 
 /* =============== End of Functions =============== */
 
