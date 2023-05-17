@@ -71,7 +71,7 @@ void InitPacket(Packet *packet);
 void Serialize(char *buffer, Packet packet);
 void Deserialize(char *buffer, Packet *packet);
 
-void StartTimeout(time_t* startTime);
-int CheckTimeout(time_t startTime, int timeout);
+void StartTimer(time_t* startTime);
+int CheckTime(time_t startTime, int timeout);
 
 #endif

@@ -22,11 +22,11 @@ void ClientSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
 
     SendACK(fd, addr, *addrLen);
 
-    StartTimeout(&startTime);
+    StartTimer(&startTime);
     while(1)
     {
         if(ReceiveSYNACK(fd, addr, addrLen)) SendACK(fd, addr, *addrLen);
-        if(CheckTimeout(startTime, TIMEOUTLONG)) break;
+        if(CheckTime(startTime, TIMEOUTLONG)) break;
     }
 
     timeout = 0;

@@ -73,12 +73,12 @@ void Deserialize(char *serializedPacket, Packet *packet)
     packet->checksum = ntohl(checksum);
 }
 
-void StartTimeout(time_t* startTime)
+void StartTimer(time_t* startTime)
 {
     time(startTime);
 }
 
-int CheckTimeout(time_t startTime, int timeout)
+int CheckTime(time_t startTime, int timeout)
 {
     time_t currentTime;
     time(&currentTime);
