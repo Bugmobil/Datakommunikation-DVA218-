@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Wno-unused-parameter
- OBJ = Setup.o Teardown.o udp_transport.o Utils.o
+CFLAGS = -Wall -Wextra -Wno-unused-variable
+OBJ = Setup.o Teardown.o udp_transport.o Utils.o
 
 all: client server
 
