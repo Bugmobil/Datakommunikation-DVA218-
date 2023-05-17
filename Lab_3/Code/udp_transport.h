@@ -47,14 +47,11 @@ void printPacket(Packet pkt);
 // Functions for packet handling
 Packet make_pkt(int seqNum, char *data, int checksum);
 Packet make_ACKpkt(int seqNum, bool ACK, bool NACK);
-void extractAndACK(Packet ACKpkt, struct thread_args *args, bool isACK);
+void extractAndDeliver(Packet ACKpkt, struct thread_args *args, bool isACK);
 
 void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr);
 void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr);
-
-void refuse_data(char *data);
-void extract_data(Packet pkt, char *data);
-void deliver_data(char *data);
+void ACKpkt(struct thread_args *args, bool isACK);
 
 // Functions for packet validation
 uint32_t checksum(const uint8_t *data, size_t len);
