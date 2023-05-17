@@ -47,7 +47,7 @@ void printPacket(Packet pkt);
 // Functions for packet handling
 Packet make_pkt(int seqNum, char *data, int checksum);
 Packet make_ACKpkt(int seqNum, bool ACK, bool NACK);
-void extractAndDeliver(Packet ACKpkt, struct thread_args *args, bool isACK);
+void extractAndDeliver(Packet rcvpkt);
 
 void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr);
 void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr);

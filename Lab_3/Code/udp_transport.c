@@ -81,7 +81,7 @@ void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr)
 }
 
 // Extracts the ACK packet and delivers the data
-void extractAndDeliver(Packet ACKpkt)
+void extractAndDeliver(Packet rcvpkt)
 {
     char rcvMsg[messageLength];
     estrcpy(rcvMsg, ACKpkt.data);

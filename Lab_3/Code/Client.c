@@ -54,7 +54,7 @@ void dataHandling(void *args)
         else
         {
             printf(RED "Packet is corrupt. Sending NACK to server.\n" RESET);
-            sendACK(targs, false);
+            ACKpkt(targs, false);
         }
     }
 }
@@ -62,7 +62,7 @@ void dataHandling(void *args)
 void *sendData(void *args)
 {
     struct thread_args *targs = (struct thread_args *)args;
-    char *sendBuffer = targs->buffer;
+    char *sendBuffer[messageLength];
     int sockfd = targs->sockfd;
     struct sockaddr_in *dest_addr = targs->addr;
     while (1)
