@@ -10,7 +10,6 @@
 
 #include <pthread.h>
 #include "udp_transport.h"
-#include "Utils.h"
 
 
 // Stores the packet's relative information

@@ -9,7 +9,7 @@
 
 #include "Utils.h"
 
-extern char *testData = "This is the frames that we want to send to the server in correct order and without errors in the data or the ACKs";
+char *testData = "This is the frames that we want to send to the server in correct order and without errors in the data or the ACKs";
 
 void InitPacket(Packet *packet)
 {
