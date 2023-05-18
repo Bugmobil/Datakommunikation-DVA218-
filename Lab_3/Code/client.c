@@ -15,6 +15,7 @@ pthread_t sendThread, rcvThread;
 
 void dataHandling(void *args)
 {
+    printf("Initializing data handling thread.\n");
     struct thread_args *targs = (struct thread_args *)args;
     
     while (1)
@@ -90,6 +91,7 @@ int main(int argc, char *argv[])
     /* Check arguments */
     if(argv[1] == NULL)
     {
+        errorLocation(__FILE__, __LINE__);
         perror("Usage: client [host name]\n");
         exit(EXIT_FAILURE);
     }
