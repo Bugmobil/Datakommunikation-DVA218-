@@ -8,6 +8,7 @@
  ============================================================================
  */
 
+#include <pthread.h>
 #include "udp_transport.h"
 #include "Utils.h"
 
@@ -81,7 +82,7 @@ void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr)
 void extractAndDeliver(Packet rcvpkt)
 {
     char rcvMsg[messageLength];
-    estrcpy(rcvMsg, ACKpkt.data);
+    strcpy(rcvMsg, rcvpkt.data);
     printf("Received data: %s\n", rcvMsg);
 }
 
