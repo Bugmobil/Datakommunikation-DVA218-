@@ -16,7 +16,7 @@ struct thread_args sendTargs, rcvTargs;
 int ACK_buffer[MAXSEQ];
 
 // This function is called by the sender thread to send data to the receiver
-void *sendData(void *args)
+void sendData(void *args)
 {
     struct thread_args *targs = (struct thread_args *)args;
     char *sendMSG[messageLength];
@@ -24,13 +24,13 @@ void *sendData(void *args)
     while (runThreads)
     {
         printf("\n");
-        fgets(sendMSG, messageLength, stdin);
+        fgets(*sendMSG, messageLength, stdin);
         sendMSG[messageLength - 1] = '\0';
-        if(strncmp(sendMSG,"quit\n",messageLength) != 0){
+        if(strncmp(*sendMSG,"quit\n",messageLength) != 0){
             if (nextSeqNum < base + N)
             {
                 // Create packet, send it, and store it in the buffer
-                sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG, checksum(sendMSG, strlen(sendMSG)));
+                sndpkt[nextSeqNum] = make_pkt(nextSeqNum, *sendMSG, checksum((u_int8_t*)sendMSG, strlen(*sendMSG)));
                 udt_send(&sndpkt[nextSeqNum], targs->sockfd, targs->addr);
                 targs->seqNum = nextSeqNum;
                 start_timer(targs,nextSeqNum);
@@ -91,8 +91,6 @@ void rcvData(void *args)
 
 int main()
 {
-    char sendBuffer[messageLength];
-    char rcvBuffer[messageLength];
     base = 1;
     nextSeqNum = 1;
 
@@ -110,8 +108,8 @@ int main()
     sendTargs.addr->sin_addr.s_addr = INADDR_ANY;
     sendTargs.addr->sin_port = htons(PORT);
 
-    pthread_create(&sendThread, NULL, sendData, (void *)&sendTargs);
-    pthread_create(&rcvThread, NULL, rcvData, (void *)&rcvTargs);
+    pthread_create(&sendThread, NULL, (void *)sendData, (void *)&sendTargs);
+    pthread_create(&rcvThread, NULL, (void *)rcvData, (void *)&rcvTargs);
     pthread_join(sendThread, NULL);
     pthread_join(rcvThread, NULL);
 

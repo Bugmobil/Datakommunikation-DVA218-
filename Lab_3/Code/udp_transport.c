@@ -11,13 +11,21 @@
 #include <pthread.h>
 #include "udp_transport.h"
 
+/* =============== End of Structs =============== */
+
+/* =============== Globalz =============== */
+
 int base = 0, nextSeqNum = 0, expectedSeqNum = 0;
 bool runThreads = true;
 
+// Arrays
 Packet sndpkt[MAX_PKT] = {0};
 Packet outOfOrder_buffer[MAXSEQ] = {0};
 int ACK_buffer[MAXSEQ] = {0};
 pthread_t timerThreads[MAXSEQ] = {0};
+
+/* =============== End of Globalz =============== */
+
 
 // Stores the packet's relative information
 Packet make_pkt(int seqNum, char *data, int checksum)
