@@ -16,7 +16,7 @@ void ClientSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
     timeout.tv_sec = TIMEOUT;
     timeout.tv_usec = 0;
     time_t startTime;
-
+    errorLocation(__FUNCTION__, __FILE__, __LINE__);
     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0)
     {
         perror("Error");
