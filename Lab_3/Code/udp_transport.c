@@ -11,6 +11,13 @@
 #include <pthread.h>
 #include "udp_transport.h"
 
+int base = 0, nextSeqNum = 0, expectedSeqNum = 0;
+bool runThreads = true;
+
+Packet sndpkt[MAX_PKT] = {0};
+Packet outOfOrder_buffer[MAXSEQ] = {0};
+int ACK_buffer[MAXSEQ] = {0};
+pthread_t timerThreads[MAXSEQ] = {0};
 
 // Stores the packet's relative information
 Packet make_pkt(int seqNum, char *data, int checksum)
