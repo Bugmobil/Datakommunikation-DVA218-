@@ -14,5 +14,5 @@ server: Server.o $(OBJ)
 
 .PHONY: clean
 clean:
-	rm -f ${PROGRAMS}
+	rm -f *.o ${PROGRAMS}
 

@@ -9,6 +9,8 @@
 
 #include "Utils.h"
 
+extern char *testData = "This is the frames that we want to send to the server in correct order and without errors in the data or the ACKs";
+
 void InitPacket(Packet *packet)
 {
     packet->ACK = 0;
@@ -111,3 +113,41 @@ void CorruptPacketPercentage(char* packet, int errorRate)
         }
     }
 }
+
+void printPacket (Packet pkt)
+{
+    printf("┌ ・・・・・・・・・・・・・・ ┐");
+    printf("┊DATA: %s\n", pkt.data);
+    printf("┊SEQ NUM: %d\n", pkt.seqNum);
+    printf("┊ACK/NACK: %d/%d\n", pkt.ACK, pkt.NACK);
+    printf("┊CHECKSUM: %d\n", pkt.checksum);
+    printf("└ ・・・・・・・・・・・・・・ ┘");
+}
+
+/* Error Handling */
+void errorMSG(char *msg)
+{
+    printf(RED "Error in function: %s\n" RESET, msg);
+    perror(NULL); // Print the error message corresponding to errno
+    exit(EXIT_FAILURE);
+}
+
+void warningMSG(char *func, char *problem)
+{
+    printf(YEL "Warning in function: %s" RESET, func);
+    printf("Problem: %s\n", problem);
+}
+
+void successMSG(char *msg)
+{
+    printf("Function %s executed", msg);
+    printf(GRN " successfully\n" RESET);
+}
+
+void corruptedMSG(int seqNum)
+{
+    printf(RED "Corrupted packet! " RESET);
+    printf("Sequence number: ");
+    printf(MAG " %d\n" RESET, seqNum);
+}
+/* End of Error Handling */

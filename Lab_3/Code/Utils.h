@@ -40,13 +40,7 @@
 #define MAX_PKT 10
 
 char hostName[hostNameLength];
-
-const char *testData[24] = {
-    "This", "is", "the" ,"frames" ,"that" ,"we" ,
-    "want" ,"to", "send" ,"to", "the", "server",
-    "in", "correct", "order", "and", "without", 
-    "errors", "in", "the", "data", "or", "the", "ACKs"
-    };
+extern char *testData;
 
 typedef struct
 {
@@ -74,43 +68,9 @@ typedef struct
 
 /* End of Terminal Colors */
 
-/* Error Handling */
-void errorMSG(char *msg)
-{
-    perror(RED "Error in function: %s\n", msg RESET);
-    exit(EXIT_FAILURE);
-}
-
-void warningMSG(char func, char *problem)
-{
-    printf(YEL "Warning in function: %s",func RESET);
-    printf("Problem: %s\n", problem);
-}
-
-void successMSG(char *msg)
-{
-    printf("Function %s executed", msg);
-    printf(GRN " successfully\n" RESET);
-}
-
-void corruptedMSG(int seqNum)
-{
-    printf(RED "Corrupted packet! " RESET);
-    printf("Sequence number: ");
-    printf(MAG " %d\n" RESET, seqNum);
-}
-/* End of Error Handling */
-
 // Prints the packet's information
-void printPacket (Packet pkt)
-{
-    printf("┌ ・・・・・・・・・・・・・・ ┐");
-    printf("┊DATA: %s\n", pkt.data);
-    printf("┊SEQ NUM: %d\n", pkt.seqNum);
-    printf("┊ACK/NACK: %d/%d\n", pkt.ACK, pkt.NACK);
-    printf("┊CHECKSUM: %d\n", pkt.checksum);
-    printf("└ ・・・・・・・・・・・・・・ ┘");
-}
+void printPacket (Packet pkt);
+
 void InitPacket(Packet *packet);
 void Serialize(char *buffer, Packet packet);
 void Deserialize(char *buffer, Packet *packet);
@@ -122,5 +82,10 @@ int GiveRandomNumber(int from, int to);
 
 void CorruptPacket(char* packet);
 void CorruptPacketPercentage(char* packet, int errorRate);
+
+void errorMSG(char *msg);
+void warningMSG(char *func, char *problem);
+void successMSG(char *msg);
+void corruptedMSG(int seqNum);
 
 #endif
