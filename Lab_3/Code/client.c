@@ -83,7 +83,7 @@ void *sendData(void *args)
 
 int main(int argc, char *argv[])
 {
-    char hostName[hostNameLength];    
+    char hostName[hostNameLength] = "student-VirtualBox";
     struct hostent *hostInfo;
     struct thread_args sendTargs, rcvTargs;
     socklen_t clientAddrLen;
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
     /* Check arguments */
     if(argv[1] == NULL)
     {
-        errorLocation(__FILE__, __LINE__);
+        errorLocation(__FUNCTION__,__FILE__, __LINE__);
         perror("Usage: client [host name]\n");
         exit(EXIT_FAILURE);
     }
