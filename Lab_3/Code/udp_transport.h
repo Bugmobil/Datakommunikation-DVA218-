@@ -20,7 +20,7 @@ struct thread_args
 {
     int seqNum;
     int sockfd;
-    struct sockaddr_in *addr;
+    struct sockaddr_in addr;
 };
 
 /* =============== End of Structs =============== */

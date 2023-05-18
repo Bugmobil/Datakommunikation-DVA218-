@@ -20,7 +20,7 @@ void dataHandling(void *args)
     while (1)
     {
         Packet pkt;
-        rdt_rcv(&pkt, targs->sockfd, targs->addr);
+        rdt_rcv(&pkt, targs->sockfd, &(targs->addr));
         if (!checkCorrupt((uint8_t*)pkt.data, pkt.dataSize, pkt.checksum))
         {
             if(!checkSeqNum(pkt.seqNum, expectedSeqNum))
@@ -63,7 +63,7 @@ void *sendData(void *args)
     struct thread_args *targs = (struct thread_args *)args;
     char *sendBuffer[messageLength];
     int sockfd = targs->sockfd;
-    struct sockaddr_in *dest_addr = targs->addr;
+    struct sockaddr_in *dest_addr = &(targs->addr);
     while (1)
     {
         printf("Enter a message to send to the server: ");
@@ -111,9 +111,9 @@ int main(int argc, char *argv[])
 
     // Set up server address
     //memset(&sendTargs.addr, 0, sizeof(sendTargs.addr));
-    sendTargs.addr->sin_family = AF_INET;
-    sendTargs.addr->sin_addr = *(struct in_addr *)hostInfo->h_addr_list[0];
-    sendTargs.addr->sin_port = htons(PORT);
+    sendTargs.addr.sin_family = AF_INET;
+    sendTargs.addr.sin_addr = *(struct in_addr *)hostInfo->h_addr_list[0];
+    sendTargs.addr.sin_port = htons(PORT);
 
     // Bind the socket to the server address
     if (bind(sendTargs.sockfd, (const struct sockaddr *)&sendTargs.addr, sizeof(sendTargs.addr)) < 0)

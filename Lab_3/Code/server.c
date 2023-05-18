@@ -31,7 +31,7 @@ void sendData(void *args)
             {
                 // Create packet, send it, and store it in the buffer
                 sndpkt[nextSeqNum] = make_pkt(nextSeqNum, *sendMSG, checksum((u_int8_t*)sendMSG, strlen(*sendMSG)));
-                udt_send(&sndpkt[nextSeqNum], targs->sockfd, targs->addr);
+                udt_send(&sndpkt[nextSeqNum], targs->sockfd, &(targs->addr));
                 targs->seqNum = nextSeqNum;
                 start_timer(targs,nextSeqNum);
                 nextSeqNum = (nextSeqNum + 1) % MAXSEQ;
@@ -55,7 +55,7 @@ void rcvData(void *args)
             base = 0;*/
 
         Packet rcvpkt;
-        rdt_rcv(&rcvpkt, targs->sockfd, targs->addr);
+        rdt_rcv(&rcvpkt, targs->sockfd,&(targs->addr));
         if (rcvpkt.ACK == 1) // If the packet is an ACK
         {
             if (base == rcvpkt.seqNum) // If the ACK is for the packet at the base of the buffer
@@ -81,7 +81,7 @@ void rcvData(void *args)
         }
         else if (rcvpkt.NACK == 1)
         {
-            udt_send(&sndpkt[rcvpkt.seqNum], targs->sockfd, targs->addr);
+            udt_send(&sndpkt[rcvpkt.seqNum], targs->sockfd, &(targs->addr));
             restart_timer(targs,rcvpkt.seqNum); // Restart the timer for the packet
         }
     }
@@ -108,9 +108,9 @@ int main()
 
     // Set up server address
     //memset(&sendTargs.addr, 0, sizeof(sendTargs.addr));
-    sendTargs.addr->sin_family = AF_INET;
-    sendTargs.addr->sin_addr.s_addr = INADDR_ANY;
-    sendTargs.addr->sin_port = htons(PORT);
+    sendTargs.addr.sin_family = AF_INET;
+    sendTargs.addr.sin_addr.s_addr = INADDR_ANY;
+    sendTargs.addr.sin_port = htons(PORT);
 
     printf("So far so good\n");
 

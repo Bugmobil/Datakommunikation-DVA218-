@@ -1,17 +1,14 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "C/C++: gcc build and debug active file",
+            "name": "Debug Server",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/${fileBasenameNoExtension}",
+            "program": "${workspaceFolder}/Code/build/server",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/",
+            "cwd": "${workspaceFolder}/Code/build/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
@@ -23,19 +20,16 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "build",
-            "sourceFileMap": {
-                "/usr/src": "/usr/src"
-            }
+            "preLaunchTask": "build"
         },
         {
-            "name": "C/C++: gcc build and debug active file",
+            "name": "Debug Client",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/${fileBasenameNoExtension}",
+            "program": "${workspaceFolder}/Code/build/client",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/",
+            "cwd": "${workspaceFolder}/Code/build/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
@@ -47,11 +41,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "build",
-            "sourceFileMap": {
-                "/usr/src": "/usr/src"
-            }
+            "preLaunchTask": "build"
         }
     ]
 }
-    

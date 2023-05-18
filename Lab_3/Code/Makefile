@@ -1,18 +1,23 @@
 CC = gcc
-CFLAGS = -Wall
-OBJ = Setup.o Teardown.o udp_transport.o Utils.o
+CFLAGS = -Wall -Wextra -g -std=c99 -D_POSIX_C_SOURCE=200809L -D_GNU_SOURCE
+OBJ = $(addprefix $(BUILDDIR)/,Setup.o Teardown.o udp_transport.o Utils.o)
 PROGRAMS = client server
+BUILDDIR = build
 
+all: directories ${PROGRAMS}
 
-all: ${PROGRAMS}
+client: $(BUILDDIR)/client.o $(OBJ)
+	$(CC) $(CFLAGS) -pthread -o $(BUILDDIR)/client client.c $(OBJ)
 
-client: Client.o $(OBJ)
-	$(CC) $(CFLAGS) -pthread -o client Client.c $(OBJ)
+server: $(BUILDDIR)/server.o $(OBJ)
+	$(CC) $(CFLAGS) -pthread -o $(BUILDDIR)/server server.c $(OBJ)
+$(BUILDDIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-server: Server.o $(OBJ)
-	$(CC) $(CFLAGS) -pthread -o server Server.c $(OBJ)
-
-.PHONY: clean
+.PHONY: clean directories
 clean:
-	rm -f *.o ${PROGRAMS}
+	rm -f $(BUILDDIR)/*.o $(BUILDDIR)/${PROGRAMS}
+
+directories: 
+	mkdir -p $(BUILDDIR)
 

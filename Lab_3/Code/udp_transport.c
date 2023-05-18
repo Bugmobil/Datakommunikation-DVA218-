@@ -30,6 +30,7 @@ pthread_t timerThreads[MAXSEQ] = {0};
 // Stores the packet's relative information
 Packet make_pkt(int seqNum, char *data, int checksum)
 {
+    
     Packet pkt;
     InitPacket(&pkt);
     pkt.seqNum = seqNum;
@@ -63,6 +64,7 @@ void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
     int bytes = sendto(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
     if (bytes < 0)
     {
+        errorLocation(__FILE__, __LINE__);
         errorMSG("udt_send() --> sendto()");
     }
     else
@@ -82,6 +84,7 @@ void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr)
 
     if (bytes < 0)
     {
+        errorLocation(__FILE__, __LINE__);
         errorMSG("rdt_rcv --> recvfrom()");
     }
     else
@@ -110,7 +113,7 @@ void ACKpkt (struct thread_args *args, bool isACK)
         NACK = true;
 
     sndpkt[expectedSeqNum] = make_ACKpkt(expectedSeqNum, ACK, NACK);
-    udt_send(&sndpkt[expectedSeqNum], args->sockfd, args->addr);
+    udt_send(&sndpkt[expectedSeqNum], args->sockfd, &(args->addr));
     printf("Sent ACK: %d\n", expectedSeqNum);
 }
 
@@ -178,7 +181,7 @@ void *timeout(void *arg) {
         // Check if the packet has been acknowledged
         if (!sndpkt[targs->seqNum].ACK && !sndpkt[targs->seqNum].NACK) {
             // If not, retransmit the packet
-            udt_send(&sndpkt[targs->seqNum], targs->sockfd, targs->addr);
+            udt_send(&sndpkt[targs->seqNum], targs->sockfd, &(targs->addr));
         }
     }
 
