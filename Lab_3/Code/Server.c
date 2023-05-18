@@ -10,6 +10,7 @@
 #include <pthread.h>
 #include "udp_transport.h"
 #include "Utils.h"
+#include "Setup.h"
 
 pthread_t sendThread, rcvThread, timerThread;
 struct thread_args sendTargs, rcvTargs;
@@ -107,12 +108,20 @@ int main()
     printf("A plethora of bugs to fix!\n");
 
     // Set up server address
-    //memset(&sendTargs.addr, 0, sizeof(sendTargs.addr));
+    struct sockaddr_in sendAddr;
+    sendTargs.addr = &sendAddr;
     sendTargs.addr->sin_family = AF_INET;
     sendTargs.addr->sin_addr.s_addr = INADDR_ANY;
     sendTargs.addr->sin_port = htons(PORT);
 
     printf("So far so good\n");
+
+    struct sockaddr_in rcvAddr;
+    socklen_t rcvAddrLen;
+    rcvTargs.addr = &rcvAddr;
+    ServerSetup(rcvTargs.sockfd, (struct sockaddr *)rcvTargs.addr, &rcvAddrLen);
+
+    printf("Setup Complete\n");
 
     pthread_create(&sendThread, NULL, (void *)sendData, (void *)&sendTargs);
     pthread_create(&rcvThread, NULL, (void *)rcvData, (void *)&rcvTargs);
