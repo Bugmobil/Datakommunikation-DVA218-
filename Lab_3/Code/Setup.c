@@ -13,12 +13,16 @@ void ClientSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
     printf("Client Setup Initiated\n");
 
     struct timeval timeout;
-    timeout.tv_sec = 0;  // 0 seconds
-    timeout.tv_usec = 900000; // 900 milliseconds
-    //int timeout = TIMEOUT * 1000;
+    timeout.tv_sec = TIMEOUT;
+    timeout.tv_usec = 0;
     time_t startTime;
 
     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0)
+    {
+        perror("Error");
+    }
+
+    sleep(1);
 
     while(1)
     {
@@ -134,6 +138,7 @@ int ReceiveSYNACK(int fd, struct sockaddr* src_addr, socklen_t* addrLen)
     {
         printf("SYNACK received\n");
         Deserialize(buffer, &synAckPkt);
+        printf("SYN = %d and ACK = %d\n", (int) synAckPkt.ACK, (int) synAckPkt.ACK);
         return (synAckPkt.SYN && synAckPkt.ACK) ? 1 : 0;
     }
     printf("No SYNACK received\n");
