@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
     char hostName[hostNameLength];    
     struct hostent *hostInfo;
     struct thread_args sendTargs, rcvTargs;
-    socklen_t client_addr_len = sizeof(rcvTargs.addr);
+    socklen_t client_addr_len;
 
     /* Check arguments */
     if(argv[1] == NULL)
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
     sendTargs.addr.sin_port = htons(PORT);
 
     // Bind the socket to the server address
-    if (bind(sendTargs.sockfd, (const struct sockaddr *)&sendTargs.addr, sizeof(sendTargs.addr)) < 0)
+    if (bind(sendTargs.sockfd, (const struct sockaddr *)sendTargs.addr, client_addr_len) < 0)
     {
         perror("Bind failed");
         exit(EXIT_FAILURE);
