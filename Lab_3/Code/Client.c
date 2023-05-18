@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
     struct thread_args sendTargs, rcvTargs;
     socklen_t client_addr_len = sizeof(rcvTargs.addr);
 
+
     /* Check arguments */
     if(argv[1] == NULL)
     {

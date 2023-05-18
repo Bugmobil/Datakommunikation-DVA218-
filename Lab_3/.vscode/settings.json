@@ -4,5 +4,19 @@
         "system_error": "c",
         "socket.h": "c"
     },
-    "C_Cpp.errorSquiggles": "disabled"
+    "C_Cpp.errorSquiggles": "enabled",
+    "C_Cpp.intelliSenseEngine": "Tag Parser",
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/**",
+        "/usr/include/**",
+        "/usr/local/include/**"
+    ],
+    "C_Cpp.default.defines": [
+        "__GNUC__",
+        "__cplusplus"
+    ],
+    "C_Cpp.default.forcedInclude": [
+        "${workspaceFolder}/utils.h"
+    ],
+    "C_Cpp.default.compilerPath": "/usr/bin/gcc",
 }
