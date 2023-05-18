@@ -77,13 +77,13 @@ typedef struct
 /* Error Handling */
 void errorMSG(char *msg)
 {
-    perror(RED "Error in function: %s\n", msg RESET);
+    printf(RED "Error in function: %s\n" RESET,msg);
     exit(EXIT_FAILURE);
 }
 
 void warningMSG(char func, char *problem)
 {
-    printf(YEL "Warning in function: %s",func RESET);
+    printf(YEL "Warning in function: %s"RESET, func);
     printf("Problem: %s\n", problem);
 }
 

@@ -1,32 +1,13 @@
 {
     "files.associations": {
-        "utils.h": "c",
+        "Utils.h": "c",
         "system_error": "c",
-        "socket.h": "c"
+        "socket.h": "c",
+        "udp_transport.h": "c",
+        "pthread.h": "c"
     },
     "C_Cpp.errorSquiggles": "enabled",
-    "C_Cpp.intelliSenseEngine": "Tag Parser",
-    "C_Cpp.default.includePath": [
-        "${workspaceFolder}/**",
-        "/usr/include/**",
-        "/usr/local/include/**"
-    ],
-    "C_Cpp.default.defines": [
-        "__GNUC__",
-        "__cplusplus"
-    ],
-    "C_Cpp.default.forcedInclude": [
-        "${workspaceFolder}/utils.h"
-    ],
-    "C_Cpp.default.compilerPath": "/usr/bin/gcc",
-    "C_Cpp.default.cStandard": "c11",
-    "C_Cpp.default.cppStandard": "c++17",
-    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-    "C_Cpp.default.browse.path": [
-        "${workspaceFolder}/**",
-        "/usr/include/**",
-        "/usr/local/include/**"
-    ],
-    "C_Cpp.default.browse.limitSymbolsToIncludedHeaders": true,
+    
+    
     
 }
