@@ -75,7 +75,7 @@ void *sendData(void *args)
         {
             sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendBuffer, checksum((uint8_t*)sendBuffer, strlen(sendBuffer)));
             udt_send(&sndpkt[nextSeqNum], sockfd, dest_addr);
-            start_timer(nextSeqNum);
+            start_timer(targs, nextSeqNum);
             nextSeqNum = (nextSeqNum + 1) % MAXSEQ;
         }
     }
