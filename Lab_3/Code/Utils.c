@@ -127,6 +127,7 @@ void printPacket (Packet pkt)
 /* Error Handling */
 void errorLocation(char *file, int line)
 {
+    printf(MAG "Function: %s\n" RESET, __FUNCTION__);
     printf(BLU "File: %s, Line: %d\n" RESET, file, line);
 }
 void errorMSG(char *msg)
