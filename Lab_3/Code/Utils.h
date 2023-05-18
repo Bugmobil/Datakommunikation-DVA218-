@@ -28,7 +28,7 @@
 #include <signal.h>
 #include <sys/time.h>
 
-#define PORT 5555
+#define PORT 5556
 #define SERVER_IP "127.0.0.1"
 #define hostNameLength 50
 #define messageLength 256

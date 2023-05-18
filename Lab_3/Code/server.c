@@ -92,6 +92,7 @@ void rcvData(void *args)
 
 int main()
 {
+    socklen_t rcvAddrLen;
     base = 1;
     nextSeqNum = 1;
 
@@ -105,20 +106,28 @@ int main()
         exit(EXIT_FAILURE);
     }
 
+    //close(sendTargs.sockfd);
+
     printf("A plethora of bugs to fix!\n");
 
     // Set up server address
     //memset(&sendTargs.addr, 0, sizeof(sendTargs.addr));
     sendTargs.addr.sin_family = AF_INET;
-    sendTargs.addr.sin_addr.s_addr = INADDR_ANY;
+    sendTargs.addr.sin_addr.s_addr = htonl(INADDR_ANY);
     sendTargs.addr.sin_port = htons(PORT);
 
-    printf("So far so good\n");
+    rcvAddrLen = sizeof(sendTargs.addr);
 
-    socklen_t rcvAddrLen;
-    ServerSetup(rcvTargs.sockfd, (struct sockaddr *)&rcvTargs.addr, &rcvAddrLen);
+    // Bind the socket to the server address
+    if (bind(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), rcvAddrLen) < 0)
+    {
+        perror("Bind failed");
+        exit(EXIT_FAILURE);
+    }
 
-    printf("Setup Complete\n");
+    printf("Bind complete\n");
+
+    ServerSetup(sendTargs.sockfd, (struct sockaddr *)&rcvTargs.addr, &rcvAddrLen);
 
     pthread_create(&sendThread, NULL, (void *)sendData, (void *)&sendTargs);
     pthread_create(&rcvThread, NULL, (void *)rcvData, (void *)&rcvTargs);
