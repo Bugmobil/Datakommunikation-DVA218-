@@ -8,7 +8,6 @@
 
 #include <semaphore.h>
 #include <pthread.h>
-#include "Utils.h"
 #include "udp_transport.h"
 #include "Setup.h"
 
