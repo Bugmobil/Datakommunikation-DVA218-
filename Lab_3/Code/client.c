@@ -116,16 +116,19 @@ int main(int argc, char *argv[])
     sendTargs.addr.sin_family = AF_INET;
     sendTargs.addr.sin_addr = *(struct in_addr *)hostInfo->h_addr_list[0];
     sendTargs.addr.sin_port = htons(PORT);
+    clientAddrLen = sizeof(sendTargs.addr);
 
     // Bind the socket to the server address
-    if (bind(sendTargs.sockfd, (struct sockaddr *)&sendTargs.addr, clientAddrLen) < 0)
+    if (bind(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), clientAddrLen) < 0)
     {
         perror("Bind failed");
         exit(EXIT_FAILURE);
     }
 
+    printf("Bind complete\n");
+
     //void ClientSetup(int fd, const struct sockaddr* destAddr, socklen_t addrLen);
-    ClientSetup(sendTargs.sockfd, (struct sockaddr *)&sendTargs.addr, &clientAddrLen);
+    ClientSetup(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), &clientAddrLen);
 
     expectedSeqNum = 1;
 
