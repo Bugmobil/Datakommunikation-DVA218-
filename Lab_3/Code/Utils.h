@@ -83,21 +83,21 @@ void errorMSG(char *msg)
 
 void warningMSG(char func, char *problem)
 {
-    printf(YELLOW "Warning in function: %s",func RESET);
+    printf(YEL "Warning in function: %s",func RESET);
     printf("Problem: %s\n", problem);
 }
 
 void successMSG(char *msg)
 {
     printf("Function %s executed", msg);
-    printf(GREEN " successfully\n" RESET);
+    printf(GRN " successfully\n" RESET);
 }
 
 void corruptedMSG(int seqNum)
 {
     printf(RED "Corrupted packet! " RESET);
     printf("Sequence number: ");
-    printf(VIOLET " %d\n" RESET, seqNum);
+    printf(MAG " %d\n" RESET, seqNum);
 }
 /* End of Error Handling */
 
