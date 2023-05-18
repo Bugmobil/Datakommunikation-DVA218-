@@ -27,14 +27,14 @@ struct thread_args
 
 /* =============== Globalz =============== */
 
-int base, nextSeqNum, expectedSeqNum;
-bool runThreads;
+extern int base, nextSeqNum, expectedSeqNum;
+extern bool runThreads;
 
 // Arrays
-Packet sndpkt[MAX_PKT];
-Packet outOfOrder_buffer[MAXSEQ];
-int ACK_buffer[MAXSEQ];
-pthread_t timerThreads[MAXSEQ];
+extern Packet sndpkt[MAX_PKT];
+extern Packet outOfOrder_buffer[MAXSEQ];
+extern int ACK_buffer[MAXSEQ];
+extern pthread_t timerThreads[MAXSEQ];
 
 /* =============== End of Globalz =============== */
 
