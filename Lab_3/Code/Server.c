@@ -94,6 +94,8 @@ int main()
     base = 1;
     nextSeqNum = 1;
 
+    printf("One small step for dev...\n");
+
     // Create a UDP socket
     sendTargs.sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sendTargs.sockfd < 0)
@@ -102,11 +104,15 @@ int main()
         exit(EXIT_FAILURE);
     }
 
+    printf("A plethora of bugs to fix!\n");
+
     // Set up server address
-    memset(&sendTargs.addr, 0, sizeof(sendTargs.addr));
+    //memset(&sendTargs.addr, 0, sizeof(sendTargs.addr));
     sendTargs.addr->sin_family = AF_INET;
     sendTargs.addr->sin_addr.s_addr = INADDR_ANY;
     sendTargs.addr->sin_port = htons(PORT);
+
+    printf("So far so good\n");
 
     pthread_create(&sendThread, NULL, (void *)sendData, (void *)&sendTargs);
     pthread_create(&rcvThread, NULL, (void *)rcvData, (void *)&rcvTargs);
