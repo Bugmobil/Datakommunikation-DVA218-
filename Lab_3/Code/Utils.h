@@ -83,6 +83,7 @@ int GiveRandomNumber(int from, int to);
 void CorruptPacket(char* packet);
 void CorruptPacketPercentage(char* packet, int errorRate);
 
+void errorLocation(char *file, int line);
 void errorMSG(char *msg);
 void warningMSG(char *func, char *problem);
 void successMSG(char *msg);
