@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
     char hostName[hostNameLength];    
     struct hostent *hostInfo;
     struct thread_args sendTargs, rcvTargs;
-    socklen_t client_addr_len;
+    socklen_t clientAddrLen;
 
     /* Check arguments */
     if(argv[1] == NULL)
@@ -102,10 +102,10 @@ int main(int argc, char *argv[])
     hostInfo = gethostbyname(hostName); 
 
     // Create a UDP socket
-    sendTargs.sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    sendTargs.sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sendTargs.sockfd < 0)
     {
-        perror("socket creation failed");
+        perror("Socket creation failed");
         exit(EXIT_FAILURE);
     }
 
@@ -113,20 +113,20 @@ int main(int argc, char *argv[])
     //memset(&sendTargs.addr, 0, sizeof(sendTargs.addr));
     struct sockaddr_in sendAddr;
     sendTargs.addr = &sendAddr;
-    sendTargs.addr->sin_family = AF_INET;
-    sendTargs.addr->sin_addr = *(struct in_addr *)hostInfo->h_addr_list[0];
-    sendTargs.addr->sin_port = htons(PORT);
-    client_addr_len = sizeof(rcvTargs.addr);
+    sendAddr.sin_family = AF_INET;
+    sendAddr.sin_addr.s_addr = INADDR_ANY; //*(struct in_addr *)hostInfo->h_addr_list[0];
+    sendAddr.sin_port = htons(PORT);
+    clientAddrLen = sizeof(sendAddr);
 
     // Bind the socket to the server address
-    if (bind(sendTargs.sockfd, (const struct sockaddr *)sendTargs.addr, client_addr_len) < 0)
+    if (bind(sendTargs.sockfd, (struct sockaddr *)&sendAddr, clientAddrLen) < 0)
     {
         perror("Bind failed");
         exit(EXIT_FAILURE);
     }
 
     //void ClientSetup(int fd, const struct sockaddr* destAddr, socklen_t addrLen);
-    ClientSetup(sendTargs.sockfd, (struct sockaddr *)&rcvTargs.addr, &client_addr_len);
+    ClientSetup(sendTargs.sockfd, (struct sockaddr *)&sendAddr, &clientAddrLen);
 
     expectedSeqNum = 1;
 

@@ -10,15 +10,24 @@
 
 void ClientSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
 {
-    int timeout = TIMEOUT * 1000;
+    printf("Client Setup Initiated\n");
+
+    struct timeval timeout;
+    timeout.tv_sec = 0;  // 0 seconds
+    timeout.tv_usec = 900000; // 900 milliseconds
+    //int timeout = TIMEOUT * 1000;
     time_t startTime;
-    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0)
 
     while(1)
     {
         SendSYN(fd, addr, *addrLen);
+        printf("SYN sent\n");
         if(ReceiveSYNACK(fd, addr, addrLen)) break;
     }
+
+    printf("SYNACK Received\n");
 
     SendACK(fd, addr, *addrLen);
 
@@ -29,16 +38,18 @@ void ClientSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
         if(CheckTime(startTime, TIMEOUTLONG)) break;
     }
 
-    timeout = 0;
+    timeout.tv_usec = 0;
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 }
 
 void ServerSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
 {
+    printf("Server Setup Initiated\n");
     int timeout = TIMEOUT * 1000;
 
     if(ReceiveSYN(fd, addr, addrLen))
     {
+        printf("SYN Received\n");
         SendSYNACK(fd, addr, *addrLen);
     }
 
@@ -118,11 +129,13 @@ int ReceiveSYNACK(int fd, struct sockaddr* src_addr, socklen_t* addrLen)
     Packet synAckPkt;
     char buffer[PACKET_SIZE];
     InitPacket(&synAckPkt);
+    printf("Waiting for SYNACK\n");
     if(recvfrom(fd, buffer, PACKET_SIZE, 0, src_addr, addrLen) != -1)
     {
+        printf("SYNACK received\n");
         Deserialize(buffer, &synAckPkt);
         return (synAckPkt.SYN && synAckPkt.ACK) ? 1 : 0;
     }
-
+    printf("No SYNACK received\n");
     return 0;
 }

@@ -119,7 +119,7 @@ int main()
     struct sockaddr_in rcvAddr;
     socklen_t rcvAddrLen;
     rcvTargs.addr = &rcvAddr;
-    ServerSetup(rcvTargs.sockfd, (struct sockaddr *)rcvTargs.addr, &rcvAddrLen);
+    ServerSetup(rcvTargs.sockfd, (struct sockaddr *)&sendAddr, &rcvAddrLen);
 
     printf("Setup Complete\n");
 
