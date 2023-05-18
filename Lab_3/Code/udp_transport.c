@@ -64,7 +64,7 @@ void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
     int bytes = sendto(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
     if (bytes < 0)
     {
-        errorLocation(__FILE__, __LINE__);
+        errorLocation(__FUNCTION__,__FILE__, __LINE__);
         errorMSG("udt_send() --> sendto()");
     }
     else
@@ -84,7 +84,7 @@ void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr)
 
     if (bytes < 0)
     {
-        errorLocation(__FILE__, __LINE__);
+        errorLocation(__FUNCTION__,__FILE__, __LINE__);
         errorMSG("rdt_rcv --> recvfrom()");
     }
     else

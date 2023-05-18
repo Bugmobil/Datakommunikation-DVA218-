@@ -81,15 +81,32 @@ void *sendData(void *args)
     }
 }
 
+void initSocketAddress(struct sockaddr_in *name, char *hostName, unsigned short int port)
+{
+    name->sin_family = AF_INET;  
+    name->sin_port = htons(port); 
+    struct hostent *hostInfo = gethostbyname(hostName); 
+
+    if(hostInfo == NULL)
+    {
+        errorLocation(__FUNCTION__,__FILE__, __LINE__);
+        perror("Unknown host: \n");
+        exit(EXIT_FAILURE);
+    }
+    printf("Host name: %s\n", hostInfo->h_name);
+    name->sin_addr = *(struct in_addr *)hostInfo->h_addr_list[0];
+
+}
+
 int main(int argc, char *argv[])
 {
     char hostName[hostNameLength] = "student-VirtualBox";
     struct hostent *hostInfo;
     struct thread_args sendTargs, rcvTargs;
-    socklen_t clientAddrLen;
+    socklen_t serverAddrLen;
 
     /* Check arguments */
-    if(argv[1] == NULL)
+   /* if(argv[1] == NULL)
     {
         errorLocation(__FUNCTION__,__FILE__, __LINE__);
         perror("Usage: client [host name]\n");
@@ -99,27 +116,24 @@ int main(int argc, char *argv[])
     {
         strncpy(hostName, argv[1], hostNameLength);
         hostName[hostNameLength - 1] = '\0';
-    }
+    }*/
 
-    hostInfo = gethostbyname(hostName); 
+    hostName[hostNameLength - 1] = '\0';
 
     // Create a UDP socket
-    sendTargs.sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    sendTargs.sockfd = socket(PF_INET, SOCK_STREAM, 0);
     if (sendTargs.sockfd < 0)
     {
         perror("Socket creation failed");
         exit(EXIT_FAILURE);
     }
 
-    // Set up server address
-    //memset(&sendTargs.addr, 0, sizeof(sendTargs.addr));
-    sendTargs.addr.sin_family = AF_INET;
-    sendTargs.addr.sin_addr = *(struct in_addr *)hostInfo->h_addr_list[0];
-    sendTargs.addr.sin_port = htons(PORT);
-    clientAddrLen = sizeof(sendTargs.addr);
+    initSocketAddress(&(sendTargs.addr), hostName, PORT);
+    serverAddrLen = sizeof(sendTargs.addr);
+   
 
     // Bind the socket to the server address
-    if (bind(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), clientAddrLen) < 0)
+    if (bind(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), serverAddrLen) < 0)
     {
         perror("Bind failed");
         exit(EXIT_FAILURE);
@@ -128,7 +142,7 @@ int main(int argc, char *argv[])
     printf("Bind complete\n");
 
     //void ClientSetup(int fd, const struct sockaddr* destAddr, socklen_t addrLen);
-    ClientSetup(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), &clientAddrLen);
+    ClientSetup(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), &serverAddrLen);
 
     expectedSeqNum = 1;
 

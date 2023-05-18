@@ -50,7 +50,7 @@ void ServerSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
 {
     printf("Server Setup Initiated\n");
     int timeout = TIMEOUT * 1000;
-
+    printf("Ready to receive SYN\n"); 
     if(ReceiveSYN(fd, addr, addrLen))
     {
         printf("SYN Received\n");
