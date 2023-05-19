@@ -9,7 +9,7 @@
 
 #include "Utils.h"
 
-char *testData = "This is the frames that we want to send to the server in correct order and without errors in the data or the ACKs";
+char *testData = "These are the frames that we want to send to the server in correct order and without errors in the data or the ACKs";
 
 void InitPacket(Packet *packet)
 {
@@ -23,7 +23,6 @@ void InitPacket(Packet *packet)
     packet->timestamp = 0;
     packet->checksum = 0;
 }
-
 void Serialize(char *serializedPacket, Packet packet)
 {
     uint16_t flags = 0;
@@ -48,7 +47,6 @@ void Serialize(char *serializedPacket, Packet packet)
     memcpy(serializedPacket + messageLength + sizeof(uint16_t) + 2 * sizeof(uint32_t), &timestamp, sizeof(uint32_t));
     memcpy(serializedPacket + messageLength + sizeof(uint16_t) + 3 * sizeof(uint32_t), &checksum, sizeof(uint32_t));
 }
-
 void Deserialize(char *serializedPacket, Packet *packet)
 {
     uint16_t flags;
@@ -87,8 +85,6 @@ void SendFlagPacket(int fd, struct sockaddr *destAddr, socklen_t addrLen, const 
     Serialize(serPkt, packet);
     sendto(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
 }
-
-//TODO FIX THIS. Nr1 Priority
 int ReceiveFlagPacket(int fd, struct sockaddr *src_addr, socklen_t *addrLen, const char* flags)
 {
     Packet packet;
@@ -112,23 +108,26 @@ int ReceiveFlagPacket(int fd, struct sockaddr *src_addr, socklen_t *addrLen, con
     return 0;
 }
 
-void StartTimer(time_t* startTime)
+void StartTimer(struct timeval* startTime)
 {
-    *startTime = time(NULL);
+    gettimeofday(startTime, NULL);
+}
+int CheckTime(struct timeval startTime, int timeout)
+{
+    struct timeval currentTime;
+    long elapsedTime = 0;
+    gettimeofday(&currentTime, NULL);
+
+    elapsedTime += (currentTime.tv_sec - startTime.tv_sec) * 1000;  // Convert seconds to milliseconds
+    elapsedTime += (currentTime.tv_usec - startTime.tv_usec) / 1000;     // Convert microseconds to milliseconds
+
+    return (elapsedTime >= timeout) ? 1 : 0;
 }
 
-int CheckTime(time_t startTime, int timeout)
-{
-    time_t currentTime;
-    time(&currentTime);
-    return (currentTime - startTime >= timeout) ? 1 : 0;
-}
-
-int GiveRandomNumber(int from, int to)
+int GiveRandomNumber(const int from, const int to)
 {
 	return rand() % (to - from + 1) + from;
 }
-
 void CorruptPacket(char* packet)
 {
     int errorRate;
@@ -136,7 +135,6 @@ void CorruptPacket(char* packet)
     errorRate = GiveRandomNumber(33, 67);
     CorruptPacketPercentage(packet, errorRate);
 }
-
 void CorruptPacketPercentage(char* packet, int errorRate)
 {
     size_t i;
@@ -150,7 +148,6 @@ void CorruptPacketPercentage(char* packet, int errorRate)
         }
     }
 }
-
 void printPacket (Packet pkt)
 {
     printf("┌ ・・・・・・・・・・・・・・ ┐");
@@ -173,19 +170,16 @@ void errorMSG(char *msg)
     perror(NULL); // Print the error message corresponding to errno
     exit(EXIT_FAILURE);
 }
-
 void warningMSG(char *func, char *problem)
 {
     printf(YEL "Warning in function: %s" RESET, func);
     printf("Problem: %s\n", problem);
 }
-
 void successMSG(char *msg)
 {
     printf("Function %s executed", msg);
     printf(GRN " successfully\n" RESET);
 }
-
 void corruptedMSG(int seqNum)
 {
     printf(RED "Corrupted packet! " RESET);
