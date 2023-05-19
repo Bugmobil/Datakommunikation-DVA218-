@@ -75,6 +75,9 @@ void InitPacket(Packet *packet);
 void Serialize(char *buffer, Packet packet);
 void Deserialize(char *buffer, Packet *packet);
 
+void SendFlagPacket(int fd, struct sockaddr *destAddr, socklen_t addrLen, const char* flags);
+int ReceiveFlagPacket(int fd, struct sockaddr *src_addr, socklen_t *addrLen, const char* flags);
+
 void StartTimer(time_t* startTime);
 int CheckTime(time_t startTime, int timeout);
 

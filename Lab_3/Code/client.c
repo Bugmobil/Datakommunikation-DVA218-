@@ -10,6 +10,7 @@
 #include <pthread.h>
 #include "udp_transport.h"
 #include "Setup.h"
+#include "Teardown.h"
 
 pthread_t sendThread, rcvThread;
 
@@ -100,13 +101,12 @@ void initSocketAddress(struct sockaddr_in *name, char *hostName, unsigned short 
 
 int main(int argc, char *argv[])
 {
-    char hostName[hostNameLength] = "student-VirtualBox";
-    struct hostent *hostInfo;
+    char hostName[hostNameLength];
     struct thread_args sendTargs, rcvTargs;
     socklen_t serverAddrLen;
 
     /* Check arguments */
-   /* if(argv[1] == NULL)
+    if(argv[1] == NULL)
     {
         errorLocation(__FUNCTION__,__FILE__, __LINE__);
         perror("Usage: client [host name]\n");
@@ -116,12 +116,12 @@ int main(int argc, char *argv[])
     {
         strncpy(hostName, argv[1], hostNameLength);
         hostName[hostNameLength - 1] = '\0';
-    }*/
+    }
 
-    hostName[hostNameLength - 1] = '\0';
+    //hostName[hostNameLength - 1] = '\0';
 
     // Create a UDP socket
-    sendTargs.sockfd = socket(PF_INET, SOCK_STREAM, 0);
+    sendTargs.sockfd = socket(PF_INET, SOCK_DGRAM, 0);
     if (sendTargs.sockfd < 0)
     {
         perror("Socket creation failed");
@@ -130,16 +130,13 @@ int main(int argc, char *argv[])
 
     initSocketAddress(&(sendTargs.addr), hostName, PORT);
     serverAddrLen = sizeof(sendTargs.addr);
-   
-
     ClientSetup(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), &serverAddrLen);
 
     expectedSeqNum = 1;
-
     pthread_create(&rcvThread, NULL, (void*)dataHandling, (void *)&rcvTargs);
-    //pthread_create(&sendThread, NULL, (void*)sendData, (void *)&sendTargs);
+    pthread_create(&sendThread, NULL, (void*)sendData, (void *)&sendTargs);
 
-
+    ClientTeardown(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), &serverAddrLen);    
     close(sendTargs.sockfd);
     return 0;
 }

@@ -38,14 +38,18 @@ void ClientSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
     StartTimer(&startTime);
     while(1)
     {
-        if(ReceiveSYNACK(fd, addr, addrLen)) SendACK(fd, addr, *addrLen);
-        if(CheckTime(startTime, TIMEOUTLONG)) break;
+        if(ReceiveSYNACK(fd, addr, addrLen))
+        {
+            SendACK(fd, addr, *addrLen);
+            StartTimer(&startTime);
+        }
+        else if(CheckTime(startTime, TIMEOUTLONG)) break;
     }
-
-    printf(GRN "Did not receive SYNACK, assuming connection has been complete\n" RESET);
 
     timeout.tv_usec = 0;
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+
+    printf(GRN "Did not receive SYNACK, assuming connection is complete\n" RESET);
 }
 
 void ServerSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
@@ -83,85 +87,30 @@ void ServerSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
 
 void SendSYN(int fd, struct sockaddr* destAddr, socklen_t addrLen)
 {
-    Packet synPkt;
-    char serPkt[PACKET_SIZE];
-    InitPacket(&synPkt);
-    synPkt.SYN = 1;
-    Serialize(serPkt, synPkt);
-    sendto(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
+    SendFlagPacket(fd, destAddr, addrLen, "0100");
 }
 
 void SendACK(int fd, struct sockaddr *destAddr, socklen_t addrLen)
 {
-    Packet ackPkt;
-    char serPkt[PACKET_SIZE];
-    InitPacket(&ackPkt);
-    ackPkt.ACK = 1;
-    Serialize(serPkt, ackPkt);
-    sendto(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
+    SendFlagPacket(fd, destAddr, addrLen, "1000");
 }
 
 void SendSYNACK(int fd, struct sockaddr *destAddr, socklen_t addrLen)
 {
-    Packet synAckPkt;
-    char serPkt[PACKET_SIZE];
-    InitPacket(&synAckPkt);
-    synAckPkt.SYN = 1;
-    synAckPkt.ACK = 1;
-    Serialize(serPkt, synAckPkt);
-    sendto(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
+    SendFlagPacket(fd, destAddr, addrLen, "1100");
 }
 
 int ReceiveSYN(int fd, struct sockaddr* src_addr, socklen_t* addrLen)
 {
-    printf("Ready to receive\n");
-    Packet synPkt;
-    char buffer[PACKET_SIZE];
-    InitPacket(&synPkt);
-    if(recvfrom(fd, buffer, PACKET_SIZE, 0, src_addr, addrLen) != -1)
-    {
-        printf("Received SYN\n");
-        Deserialize(buffer, &synPkt);
-        return (synPkt.SYN) ? 1 : 0;
-    }
-    else
-    {
-        perror("ReceiveSYN failure");
-        exit(EXIT_FAILURE);
-    }
-
-    printf("Received balony\n");
-
-    return 0;
+    return ReceiveFlagPacket(fd, src_addr, addrLen, "0100");
 }
 
 int ReceiveACK(int fd, struct sockaddr* src_addr, socklen_t* addrLen)
 {
-    Packet ackPkt;
-    char buffer[PACKET_SIZE];
-    InitPacket(&ackPkt);
-    if(recvfrom(fd, buffer, PACKET_SIZE, 0, src_addr, addrLen) != -1)
-    {
-        Deserialize(buffer, &ackPkt);
-        return (ackPkt.ACK) ? 1 : 0;
-    }
-
-    return 0;
+    return ReceiveFlagPacket(fd, src_addr, addrLen, "1000");
 }
 
 int ReceiveSYNACK(int fd, struct sockaddr* src_addr, socklen_t* addrLen)
 {
-    Packet synAckPkt;
-    char buffer[PACKET_SIZE];
-    InitPacket(&synAckPkt);
-    printf("Waiting for SYNACK\n");
-    if(recvfrom(fd, buffer, PACKET_SIZE, 0, src_addr, addrLen) != -1)
-    {
-        printf("SYNACK received\n");
-        Deserialize(buffer, &synAckPkt);
-        printf("SYN = %d and ACK = %d\n", (int) synAckPkt.ACK, (int) synAckPkt.ACK);
-        return (synAckPkt.SYN && synAckPkt.ACK) ? 1 : 0;
-    }
-    printf("No SYNACK received\n");
-    return 0;
+    return ReceiveFlagPacket(fd, src_addr, addrLen, "1100");
 }

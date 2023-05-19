@@ -75,6 +75,43 @@ void Deserialize(char *serializedPacket, Packet *packet)
     packet->checksum = ntohl(checksum);
 }
 
+void SendFlagPacket(int fd, struct sockaddr *destAddr, socklen_t addrLen, const char* flags)
+{
+    Packet packet;
+    char serPkt[PACKET_SIZE];
+    InitPacket(&packet);
+    packet.ACK = flags[0] & 1;
+    packet.SYN = flags[1] & 1;
+    packet.FIN = flags[2] & 1;
+    packet.NACK = flags[3] & 1;
+    Serialize(serPkt, packet);
+    sendto(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
+}
+
+//TODO FIX THIS. Nr1 Priority
+int ReceiveFlagPacket(int fd, struct sockaddr *src_addr, socklen_t *addrLen, const char* flags)
+{
+    Packet packet;
+    char buffer[PACKET_SIZE];
+    InitPacket(&packet);
+    if(recvfrom(fd, buffer, PACKET_SIZE, 0, src_addr, addrLen) != -1)
+    {
+        Deserialize(buffer, &packet);
+
+        printf("ACK: %d == %d \t SYN: %d == %d \t FIN: %d == %d \t NACK: %d == %d\n", 
+        packet.ACK, flags[0] & 1, packet.SYN, flags[1] & 1, packet.FIN, flags[2] & 1, packet.NACK, flags[3] & 1);
+
+        return 
+        ((packet.ACK == (flags[0] & 1)) 
+        & (packet.SYN == (flags[1] & 1)) 
+        & (packet.FIN == (flags[2] & 1)) 
+        & (packet.NACK == (flags[3] & 1))) 
+        ? 1 : 0;
+    }
+
+    return 0;
+}
+
 void StartTimer(time_t* startTime)
 {
     *startTime = time(NULL);
@@ -127,7 +164,7 @@ void printPacket (Packet pkt)
 /* Error Handling */
 void errorLocation(char *function, char *file, int line)
 {
-    printf(MAG "Function: %s\nFile: %s, Line: %d\n", function,file, line, RESET);
+    printf(MAG "Function: %s\nFile: %s, Line: %d\n" RESET, function, file, line);
     printf(RESET"");
 }
 void errorMSG(char *msg)
