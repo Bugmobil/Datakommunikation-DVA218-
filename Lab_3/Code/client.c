@@ -107,6 +107,7 @@ int main(int argc, char *argv[])
 
     /* Check arguments */
     if(argv[1] == NULL)
+    if(argv[1] == NULL)
     {
         errorLocation(__FUNCTION__,__FILE__, __LINE__);
         perror("Usage: client [host name]\n");
@@ -116,6 +117,7 @@ int main(int argc, char *argv[])
     {
         strncpy(hostName, argv[1], hostNameLength);
         hostName[hostNameLength - 1] = '\0';
+    }
     }
 
     //hostName[hostNameLength - 1] = '\0';
