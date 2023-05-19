@@ -8,6 +8,7 @@
 
 #include <semaphore.h>
 #include <pthread.h>
+#include <fcntl.h>
 #include "udp_transport.h"
 #include "Setup.h"
 #include "Teardown.h"
@@ -19,7 +20,7 @@ void dataHandling(void *args)
     printf("Initializing data handling thread.\n");
     struct thread_args *targs = (struct thread_args *)args;
     
-    while (1)
+    while (runThreads)
     {
         Packet pkt;
         rdt_rcv(&pkt, targs->sockfd, &(targs->addr));
@@ -60,7 +61,7 @@ void dataHandling(void *args)
     }
 }
 
-void *sendData(void *args)
+/*void *sendData(void *args)
 {
     struct thread_args *targs = (struct thread_args *)args;
     char *sendBuffer[messageLength];
@@ -80,7 +81,7 @@ void *sendData(void *args)
             nextSeqNum = (nextSeqNum + 1) % MAXSEQ;
         }
     }
-}
+}*/
 
 void initSocketAddress(struct sockaddr_in *name, char *hostName, unsigned short int port)
 {
@@ -102,7 +103,8 @@ void initSocketAddress(struct sockaddr_in *name, char *hostName, unsigned short 
 int main(int argc, char *argv[])
 {
     char hostName[hostNameLength];
-    struct thread_args sendTargs, rcvTargs;
+  //  struct hostent *hostInfo;
+    struct thread_args sendTargs;
     socklen_t serverAddrLen;
 
     /* Check arguments */
@@ -132,9 +134,19 @@ int main(int argc, char *argv[])
     serverAddrLen = sizeof(sendTargs.addr);
     ClientSetup(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), &serverAddrLen);
 
+    int flags = fcntl(sendTargs.sockfd, F_GETFL, 0);
+    if (flags & O_NONBLOCK) {
+        printf("Socket is non-blocking\n");
+    } else {
+        printf("Socket is blocking\n");
+    }
+
     expectedSeqNum = 1;
-    pthread_create(&rcvThread, NULL, (void*)dataHandling, (void *)&rcvTargs);
-    pthread_create(&sendThread, NULL, (void*)sendData, (void *)&sendTargs);
+    dataHandling((void *)&sendTargs);
+    //pthread_create(&rcvThread, NULL, (void*)dataHandling, (void *)&sendTargs);
+    //pthread_join(rcvThread, NULL);
+    //pthread_create(&sendThread, NULL, (void*)sendData, (void *)&sendTargs);
+
 
     ClientTeardown(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), &serverAddrLen);    
     close(sendTargs.sockfd);

@@ -26,17 +26,16 @@ pthread_t timerThreads[MAXSEQ] = {0};
 
 /* =============== End of Globalz =============== */
 
-
 // Stores the packet's relative information
 Packet make_pkt(int seqNum, char *data, int checksum)
 {
-    
+
     Packet pkt;
     InitPacket(&pkt);
     pkt.seqNum = seqNum;
     strncpy(pkt.data, data, sizeof(pkt.data));
     pkt.checksum = checksum;
-    
+
     printPacket(pkt);
     return pkt;
 }
@@ -64,12 +63,12 @@ void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
     int bytes = sendto(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
     if (bytes < 0)
     {
-        errorLocation(__FUNCTION__,__FILE__, __LINE__);
+        errorLocation(__FUNCTION__, __FILE__, __LINE__);
         errorMSG("udt_send() --> sendto()");
     }
     else
     {
-        successMSG("udt_send()");
+        //successMSG("udt_send()");
     }
 }
 
@@ -80,19 +79,18 @@ void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr)
     socklen_t addr_len = sizeof(*src_addr);
 
     // Receive data using recvfrom() and store it in the buffer
-    int bytes = recvfrom(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)src_addr, &addr_len);
+    int bytes = recvfrom(sockfd, buffer, PACKET_SIZE, 0, src_addr, &addr_len);
 
     if (bytes < 0)
     {
-        errorLocation(__FUNCTION__,__FILE__, __LINE__);
+        errorLocation(__FUNCTION__, __FILE__, __LINE__);
         errorMSG("rdt_rcv --> recvfrom()");
     }
     else
     {
         Deserialize(buffer, pkt); // Deserialize the buffer into a packet
-        successMSG("rdt_rcv()");
+        //successMSG("rdt_rcv()");
     }
-    
 }
 
 // Extracts the ACK packet and delivers the data
@@ -104,22 +102,21 @@ void extractAndDeliver(Packet rcvpkt)
 }
 
 // Sends an ACK or NACK packet to the sender
-void ACKpkt (struct thread_args *args, bool isACK)
+void ACKpkt(struct thread_args *args, bool isACK)
 {
     bool ACK = false, NACK = false;
-    if(isACK)
+    if (isACK)
         ACK = true;
     else
         NACK = true;
 
     sndpkt[expectedSeqNum] = make_ACKpkt(expectedSeqNum, ACK, NACK);
     udt_send(&sndpkt[expectedSeqNum], args->sockfd, &(args->addr));
-    printf("Sent ACK: %d\n", expectedSeqNum);
 }
 
 /*
 Uses the Fletcher's checksum algorithm to calculate
-the checksum of the data 
+the checksum of the data
 */
 uint32_t checksum(const uint8_t *data, size_t len)
 {
@@ -137,7 +134,7 @@ uint32_t checksum(const uint8_t *data, size_t len)
 /*
 Checks if the packet is corrupted by comparing the received checksum
 with the calculated checksum of the received data.
-Returns 0 if the packet is not corrupted. 
+Returns 0 if the packet is not corrupted.
 */
 int checkCorrupt(const uint8_t *data, size_t len, uint32_t rcvChecksum)
 {
@@ -146,7 +143,7 @@ int checkCorrupt(const uint8_t *data, size_t len, uint32_t rcvChecksum)
 
 /*
 Checks if the received sequence number is the expected sequence number
-Returns 0 if the received sequence number is the expected sequence number 
+Returns 0 if the received sequence number is the expected sequence number
 */
 int checkSeqNum(int rcvSeqNum, int expSeqNum)
 {
@@ -169,17 +166,20 @@ void restart_timer(struct thread_args *args, int seqNum)
     stop_timer(seqNum);
     start_timer(args, seqNum);
 }
-void *timeout(void *arg) {
+void *timeout(void *arg)
+{
     struct thread_args *targs = (struct thread_args *)arg;
-    
+
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
-    while (runThreads) {
+    while (runThreads)
+    {
         // Sleep for the timeout duration
         sleep(TIMEOUT);
         // Check if the packet has been acknowledged
-        if (!sndpkt[targs->seqNum].ACK && !sndpkt[targs->seqNum].NACK) {
+        if (!sndpkt[targs->seqNum].ACK && !sndpkt[targs->seqNum].NACK)
+        {
             // If not, retransmit the packet
             udt_send(&sndpkt[targs->seqNum], targs->sockfd, &(targs->addr));
         }
@@ -187,4 +187,3 @@ void *timeout(void *arg) {
 
     return NULL;
 }
-

@@ -21,18 +21,18 @@ int ACK_buffer[MAXSEQ];
 void sendData(void *args)
 {
     struct thread_args *targs = (struct thread_args *)args;
-    char *sendMSG[messageLength];
+    char sendMSG[messageLength];
     printf("Enter a message to send to the client: ");
     while (runThreads)
     {
         printf("\n");
-        fgets(*sendMSG, messageLength, stdin);
+        fgets(sendMSG, messageLength, stdin);
         sendMSG[messageLength - 1] = '\0';
-        if(strncmp(*sendMSG,"quit\n",messageLength) != 0){
+        if(strncmp(sendMSG,"quit\n",messageLength) != 0){
             if (nextSeqNum < base + N)
             {
                 // Create packet, send it, and store it in the buffer
-                sndpkt[nextSeqNum] = make_pkt(nextSeqNum, *sendMSG, checksum((u_int8_t*)sendMSG, strlen(*sendMSG)));
+                sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG, checksum((u_int8_t*)sendMSG, strlen(sendMSG)));
                 udt_send(&sndpkt[nextSeqNum], targs->sockfd, &(targs->addr));
                 targs->seqNum = nextSeqNum;
                 start_timer(targs,nextSeqNum);
@@ -72,6 +72,7 @@ void rcvData(void *args)
                     stop_timer(base);
                     base = (base + 1) % MAXSEQ;
                 }
+                // TODO: Send FIN packet
             }
 
             // Buffer out of order ACKs
@@ -127,9 +128,11 @@ int main()
     printf("Bind complete\n");
 
     ServerSetup(sendTargs.sockfd, (struct sockaddr *)&rcvTargs.addr, &rcvAddrLen);
+    sendData(&sendTargs);
+    
+    pthread_create(&rcvThread, NULL, (void *)rcvData, (void *)&sendTargs);
 
-    pthread_create(&sendThread, NULL, (void *)sendData, (void *)&sendTargs);
-    pthread_create(&rcvThread, NULL, (void *)rcvData, (void *)&rcvTargs);
+    pthread_create(&sendThread, NULL, (void *)timeout, (void *)&sendTargs);
     pthread_join(sendThread, NULL);
     pthread_join(rcvThread, NULL);
 
