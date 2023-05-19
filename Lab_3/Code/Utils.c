@@ -116,12 +116,12 @@ void CorruptPacketPercentage(char* packet, int errorRate)
 
 void printPacket (Packet pkt)
 {
-    printf("┌ ・・・・・・・・・・・・・・ ┐");
-    printf("┊DATA: %s\n", pkt.data);
+    printf("┌ ・・・・・・・・・・・・・・ ┐\n");
+    printf("┊DATA: %s", pkt.data);
     printf("┊SEQ NUM: %d\n", pkt.seqNum);
     printf("┊ACK/NACK: %d/%d\n", pkt.ACK, pkt.NACK);
     printf("┊CHECKSUM: %d\n", pkt.checksum);
-    printf("└ ・・・・・・・・・・・・・・ ┘");
+    printf("└ ・・・・・・・・・・・・・・ ┘\n");
 }
 
 /* Error Handling */
