@@ -56,7 +56,7 @@ Packet make_ACKpkt(int seqNum, bool ACK, bool NACK)
 void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
 {
     char buffer[PACKET_SIZE];
-
+    pkt->dataSize = strlen(pkt->data);
     Serialize(buffer, *pkt); // Serialize the packet into a buffer
 
     // Use sendto() to send the serialized packet using the UDP socket
@@ -83,7 +83,7 @@ void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr)
 
     if (bytes < 0)
     {
-        errorLocation(__FUNCTION__, __FILE__, __LINE__);
+        errorLocation(__FUNCTION__,__FILE__, __LINE__);
         errorMSG("rdt_rcv --> recvfrom()");
     }
     else
@@ -155,14 +155,17 @@ Timer functions
 */
 void start_timer(struct thread_args *args, int seqNum)
 {
+    printf("Starting timer for packet %d\n", seqNum);
     pthread_create(&timerThreads[seqNum], NULL, timeout, (void *)args);
 }
 void stop_timer(int seqNum)
 {
+    printf("Stopping timer for packet %d\n", seqNum);
     pthread_cancel(timerThreads[seqNum]);
 }
 void restart_timer(struct thread_args *args, int seqNum)
 {
+    printf("Restarting timer for packet %d\n", seqNum);
     stop_timer(seqNum);
     start_timer(args, seqNum);
 }
@@ -180,8 +183,11 @@ void *timeout(void *arg)
         // Check if the packet has been acknowledged
         if (!sndpkt[targs->seqNum].ACK && !sndpkt[targs->seqNum].NACK)
         {
+            printf(RED "Timeout for packet %d\n", RESET, targs->seqNum);
+            printf("Retransmitting packet\n");
             // If not, retransmit the packet
             udt_send(&sndpkt[targs->seqNum], targs->sockfd, &(targs->addr));
+            restart_timer(targs, targs->seqNum);
         }
     }
 

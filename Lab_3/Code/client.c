@@ -14,6 +14,8 @@
 #include "Teardown.h"
 
 pthread_t sendThread, rcvThread;
+pthread_mutex_t mutex;
+
 
 void dataHandling(void *args)
 {
@@ -23,40 +25,45 @@ void dataHandling(void *args)
     while (runThreads)
     {
         Packet pkt;
+        InitPacket(&pkt);
         rdt_rcv(&pkt, targs->sockfd, &(targs->addr));
-        if (!checkCorrupt((uint8_t*)pkt.data, pkt.dataSize, pkt.checksum))
+        pkt.dataSize = strlen(pkt.data);
+        if (pkt.dataSize != 0)
         {
-            if(!checkSeqNum(pkt.seqNum, expectedSeqNum))
+            if (!checkCorrupt((uint8_t*)pkt.data, pkt.dataSize, pkt.checksum))
             {
-                ACKpkt(targs, true);
-                printf(GRN "Expected sequence number received. Sending ACK to server.\n" RESET);
-                
-                extractAndDeliver(pkt);
-                printf(GRN "Packet %d extracted and sent to application layer.\n" RESET, pkt.seqNum);
-                
-                expectedSeqNum = (expectedSeqNum + 1) % MAXSEQ;
-                printf("Expected sequence number incremented to: %d\n", expectedSeqNum);
-               
-                while (outOfOrder_buffer[expectedSeqNum].seqNum == expectedSeqNum)
+                if(!checkSeqNum(pkt.seqNum, expectedSeqNum))
                 {
-                    pkt = outOfOrder_buffer[expectedSeqNum];
+                    ACKpkt(targs, true);
+                    printf(GRN "Expected sequence number received. Sending ACK to server.\n" RESET);
+                    
                     extractAndDeliver(pkt);
-                    printf(YEL "Packet %d extracted from out-of-order buffer and sent to application layer.\n" RESET, pkt.seqNum);
+                    printf(GRN "Packet %d extracted and sent to application layer.\n" RESET, pkt.seqNum);
+                    
                     expectedSeqNum = (expectedSeqNum + 1) % MAXSEQ;
                     printf("Expected sequence number incremented to: %d\n", expectedSeqNum);
+                
+                    while (outOfOrder_buffer[expectedSeqNum].seqNum == expectedSeqNum)
+                    {
+                        pkt = outOfOrder_buffer[expectedSeqNum];
+                        extractAndDeliver(pkt);
+                        printf(YEL "Packet %d extracted from out-of-order buffer and sent to application layer.\n" RESET, pkt.seqNum);
+                        expectedSeqNum = (expectedSeqNum + 1) % MAXSEQ;
+                        printf("Expected sequence number incremented to: %d\n", expectedSeqNum);
+                    }
+                }
+                else
+                {
+                    outOfOrder_buffer[pkt.seqNum] = pkt;
+                    ACKpkt(targs, true);
+                    printf(BLU "Packet out of order. Sending ACK to server.\n" RESET);
                 }
             }
             else
             {
-                outOfOrder_buffer[pkt.seqNum] = pkt;
-                ACKpkt(targs, true);
-                printf(BLU "Packet out of order. Sending ACK to server.\n" RESET);
+                printf(RED "Packet is corrupt. Sending NACK to server.\n" RESET);
+                ACKpkt(targs, false);
             }
-        }
-        else
-        {
-            printf(RED "Packet is corrupt. Sending NACK to server.\n" RESET);
-            ACKpkt(targs, false);
         }
     }
 }
@@ -123,7 +130,7 @@ int main(int argc, char *argv[])
     //hostName[hostNameLength - 1] = '\0';
 
     // Create a UDP socket
-    sendTargs.sockfd = socket(PF_INET, SOCK_DGRAM, 0);
+    sendTargs.sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sendTargs.sockfd < 0)
     {
         perror("Socket creation failed");
@@ -140,6 +147,14 @@ int main(int argc, char *argv[])
     } else {
         printf("Socket is blocking\n");
     }
+
+    printf("Connecting to server...\n");
+    printf("┌ ・・・・・・・・・・・・・・ ┐\n");
+    printf("┊HOST NAME: %s\n", hostName);
+    printf("┊IP ADDRESS: %s\n", inet_ntoa(sendTargs.addr.sin_addr));
+    printf("┊PORT: %d\n", ntohs(sendTargs.addr.sin_port));
+    printf("┊SOCKET: %d\n", sendTargs.sockfd);
+    printf("└ ・・・・・・・・・・・・・・ ┘\n");
 
     expectedSeqNum = 1;
     dataHandling((void *)&sendTargs);

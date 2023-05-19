@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+    
         {
             "name": "Debug Server",
             "type": "cppdbg",
@@ -27,7 +28,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/Code/build/client",
-            "args": [],
+            "args": ["student-VirtualBox"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/Code/build/",
             "environment": [],

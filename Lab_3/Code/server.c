@@ -12,9 +12,11 @@
 #include "Utils.h"
 #include "Setup.h"
 #include "Teardown.h"
+pthread_mutex_t mutex;
+
 
 pthread_t sendThread, rcvThread, timerThread;
-struct thread_args sendTargs, rcvTargs;
+struct thread_args sendTargs;
 int ACK_buffer[MAXSEQ];
 
 // This function is called by the sender thread to send data to the receiver
@@ -23,6 +25,7 @@ void sendData(void *args)
     struct thread_args *targs = (struct thread_args *)args;
     char sendMSG[messageLength];
     printf("Enter a message to send to the client: ");
+    //pthread_cond_wait(&cond, &mutex); // Wait for the receiver to be ready
     while (runThreads)
     {
         printf("\n");
@@ -31,12 +34,14 @@ void sendData(void *args)
         if(strncmp(sendMSG,"quit\n",messageLength) != 0){
             if (nextSeqNum < base + N)
             {
+                pthread_mutex_lock(&mutex); // Lock the mutex
                 // Create packet, send it, and store it in the buffer
                 sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG, checksum((u_int8_t*)sendMSG, strlen(sendMSG)));
                 udt_send(&sndpkt[nextSeqNum], targs->sockfd, &(targs->addr));
                 targs->seqNum = nextSeqNum;
                 start_timer(targs,nextSeqNum);
                 nextSeqNum = (nextSeqNum + 1) % MAXSEQ;
+                pthread_mutex_unlock(&mutex); // Unlock the mutex
             }
         }
         else {  
@@ -58,18 +63,22 @@ void rcvData(void *args)
 
         Packet rcvpkt;
         rdt_rcv(&rcvpkt, targs->sockfd,&(targs->addr));
+
+        pthread_mutex_lock(&mutex); // Lock the mutex
         if (rcvpkt.ACK == 1) // If the packet is an ACK
         {
             if (base == rcvpkt.seqNum) // If the ACK is for the packet at the base of the buffer
             {
                 stop_timer(rcvpkt.seqNum); // Stop the timer for the packet
                 base = (base + 1) % MAXSEQ; // Move the base forward
+                successACK(rcvpkt.seqNum);
 
                 // Check for any out of order ACKs
                 while (ACK_buffer[base])
                 {
                     ACK_buffer[base] = 0;
                     stop_timer(base);
+                    printf("Removing out of order ACK for packet sequencenumber %d\n", base);
                     base = (base + 1) % MAXSEQ;
                 }
                 // TODO: Send FIN packet
@@ -78,6 +87,8 @@ void rcvData(void *args)
             // Buffer out of order ACKs
             else
             {
+                successACK(rcvpkt.seqNum);
+                printf("Buffering out of order ACK for packet sequencenumber %d\n", rcvpkt.seqNum);
                 ACK_buffer[rcvpkt.seqNum] = 1;
                 stop_timer(rcvpkt.seqNum);
             }
@@ -87,6 +98,7 @@ void rcvData(void *args)
             udt_send(&sndpkt[rcvpkt.seqNum], targs->sockfd, &(targs->addr));
             restart_timer(targs,rcvpkt.seqNum); // Restart the timer for the packet
         }
+        pthread_mutex_unlock(&mutex); // Unlock the mutex
     }
 }
 
@@ -127,7 +139,18 @@ int main()
 
     printf("Bind complete\n");
 
-    ServerSetup(sendTargs.sockfd, (struct sockaddr *)&rcvTargs.addr, &rcvAddrLen);
+    ServerSetup(sendTargs.sockfd, (struct sockaddr *)&sendTargs.addr, &rcvAddrLen);
+
+/*
+    printf("Connecting to server...\n");
+    printf("┌ ・・・・・・・・・・・・・・ ┐\n");
+    printf("┊HOST NAME: %s\n", hostName);
+    printf("┊IP ADDRESS: %d\n", htonl(sendTargs.addr.sin_addr.s_addr));
+    printf("┊PORT: %d\n", ntohs(sendTargs.addr.sin_port));
+    printf("┊SOCKET: %d\n", sendTargs.sockfd);
+    printf("└ ・・・・・・・・・・・・・・ ┘\n");*/
+
+    pthread_mutex_init(&mutex, NULL);
     sendData(&sendTargs);
     
     pthread_create(&rcvThread, NULL, (void *)rcvData, (void *)&sendTargs);
@@ -136,8 +159,10 @@ int main()
     pthread_join(sendThread, NULL);
     pthread_join(rcvThread, NULL);
 
-    ServerTeardown(sendTargs.sockfd, (struct sockaddr *)&rcvTargs.addr, &rcvAddrLen);
+    ServerTeardown(sendTargs.sockfd, (struct sockaddr *)&sendTargs.addr, &rcvAddrLen);
 
     close(sendTargs.sockfd);
+    pthread_mutex_destroy(&mutex);
+
     return 0;
 }

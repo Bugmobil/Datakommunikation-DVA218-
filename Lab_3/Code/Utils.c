@@ -58,18 +58,19 @@ void Deserialize(char *serializedPacket, Packet *packet)
     uint32_t checksum;
 
     memcpy(&flags, serializedPacket, sizeof(uint16_t));
-    memcpy(&packet->data, serializedPacket + sizeof(uint16_t), packet->dataSize);
     memcpy(&dataSize, serializedPacket + messageLength + sizeof(uint16_t), sizeof(uint32_t));
     memcpy(&seqNum, serializedPacket + messageLength + sizeof(uint16_t) + sizeof(uint32_t), sizeof(uint32_t));
     memcpy(&timestamp, serializedPacket + messageLength + sizeof(uint16_t) + 2 * sizeof(uint32_t), sizeof(uint32_t));
     memcpy(&checksum, serializedPacket + messageLength + sizeof(uint16_t) + 3 * sizeof(uint32_t), sizeof(uint32_t));
+
+    packet->dataSize = ntohl(dataSize);
+    memcpy(&packet->data, serializedPacket + sizeof(uint16_t), packet->dataSize);
 
     packet->ACK = 1 & (flags >> 0);
     packet->SYN = 1 & (flags >> 1);
     packet->FIN = 1 & (flags >> 2);
     packet->NACK = 1 & (flags >> 3);
 
-    packet->dataSize = ntohl(dataSize);
     packet->seqNum = ntohl(seqNum);
     packet->timestamp = ntohl(timestamp);
     packet->checksum = ntohl(checksum);
@@ -184,6 +185,20 @@ void successMSG(char *msg)
 {
     printf("Function %s executed", msg);
     printf(GRN " successfully\n" RESET);
+}
+
+void successPKT(int seqNum)
+{
+    printf(GRN "Packet successfully sent! " RESET);
+    printf("Sequence number: ");
+    printf(MAG " %d\n" RESET, seqNum);
+}
+
+void successACK(int seqNum)
+{
+    printf(GRN "Received ACK for packet with " RESET);
+    printf("Sequence number: ");
+    printf(MAG " %d\n" RESET, seqNum);
 }
 
 void corruptedMSG(int seqNum)

@@ -90,6 +90,8 @@ void errorLocation(char *function, char *file, int line);
 void errorMSG(char *msg);
 void warningMSG(char *func, char *problem);
 void successMSG(char *msg);
+void successPKT(int seqNum);
+void successACK(int seqNum);
 void corruptedMSG(int seqNum);
 
 #endif
