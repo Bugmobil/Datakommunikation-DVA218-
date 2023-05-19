@@ -34,7 +34,8 @@
 #define messageLength 256
 #define PACKET_SIZE messageLength + sizeof(uint16_t) + 4 * sizeof(uint32_t)
 #define TIMEOUT 1
-#define TIMEOUTLONG 5
+#define TIMEOUTLONG TIMEOUT * 10
+#define TIMEOUTUSEC TIMEOUT * 1000
 #define N 5 // window size
 #define MAXSEQ 25600
 #define MAX_PKT 10
@@ -68,24 +69,33 @@ typedef struct
 
 /* End of Terminal Colors */
 
-// Prints the packet's information
-void printPacket (Packet pkt);
-
+// Initializes packet by setting values to zero
 void InitPacket(Packet *packet);
+// Converts packet into a format sendto() can send
 void Serialize(char *buffer, Packet packet);
+// Converts serialized packet into packet struct
 void Deserialize(char *buffer, Packet *packet);
 
+// Sends the flags specified by the flags argument. Argument flags must be four single bit numbers. Order goes ACK -> SYN -> FIN -> NACK
 void SendFlagPacket(int fd, struct sockaddr *destAddr, socklen_t addrLen, const char* flags);
+// Receives the flags specified by the flags argument. Argument flags must be four single bit numbers. Order goes ACK -> SYN -> FIN -> NACK
 int ReceiveFlagPacket(int fd, struct sockaddr *src_addr, socklen_t *addrLen, const char* flags);
 
-void StartTimer(time_t* startTime);
-int CheckTime(time_t startTime, int timeout);
+//Sets timer to current time
+void StartTimer(struct timeval* startTime);
+//Returns 1 if timeout has surpassed starTime. Otherwise returns 0
+int CheckTime(struct timeval startTime, int timeout);
 
-int GiveRandomNumber(int from, int to);
+//Return random integer
+int GiveRandomNumber(const int from, const int to);
 
+//Randomly corrupts packet
 void CorruptPacket(char* packet);
+//Randomly corrupts packet based on errorRate. Must be between 0 and 100
 void CorruptPacketPercentage(char* packet, int errorRate);
 
+// Prints the packet's information
+void printPacket(Packet pkt);
 void errorLocation(char *function, char *file, int line);
 void errorMSG(char *msg);
 void warningMSG(char *func, char *problem);
