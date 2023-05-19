@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include "udp_transport.h"
 #include "Setup.h"
+#include "Teardown.h"
 
 pthread_t sendThread, rcvThread;
 
@@ -122,7 +123,7 @@ int main(int argc, char *argv[])
     //hostName[hostNameLength - 1] = '\0';
 
     // Create a UDP socket
-    sendTargs.sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    sendTargs.sockfd = socket(PF_INET, SOCK_DGRAM, 0);
     if (sendTargs.sockfd < 0)
     {
         perror("Socket creation failed");
@@ -131,8 +132,6 @@ int main(int argc, char *argv[])
 
     initSocketAddress(&(sendTargs.addr), hostName, PORT);
     serverAddrLen = sizeof(sendTargs.addr);
-   
-
     ClientSetup(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), &serverAddrLen);
 
     int flags = fcntl(sendTargs.sockfd, F_GETFL, 0);
@@ -149,6 +148,7 @@ int main(int argc, char *argv[])
     //pthread_create(&sendThread, NULL, (void*)sendData, (void *)&sendTargs);
 
 
+    ClientTeardown(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), &serverAddrLen);    
     close(sendTargs.sockfd);
     return 0;
 }

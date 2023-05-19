@@ -11,6 +11,7 @@
 #include "udp_transport.h"
 #include "Utils.h"
 #include "Setup.h"
+#include "Teardown.h"
 
 pthread_t sendThread, rcvThread, timerThread;
 struct thread_args sendTargs, rcvTargs;
@@ -107,8 +108,6 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    //close(sendTargs.sockfd);
-
     printf("A plethora of bugs to fix!\n");
 
     // Set up server address
@@ -136,6 +135,8 @@ int main()
     pthread_create(&sendThread, NULL, (void *)timeout, (void *)&sendTargs);
     pthread_join(sendThread, NULL);
     pthread_join(rcvThread, NULL);
+
+    ServerTeardown(sendTargs.sockfd, (struct sockaddr *)&rcvTargs.addr, &rcvAddrLen);
 
     close(sendTargs.sockfd);
     return 0;
