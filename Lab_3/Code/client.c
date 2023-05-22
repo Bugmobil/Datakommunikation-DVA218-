@@ -71,27 +71,7 @@ void dataHandling(void *args)
     }
 }
 
-/*void *sendData(void *args)
-{
-    struct thread_args *targs = (struct thread_args *)args;
-    char *sendBuffer[messageLength];
-    int sockfd = targs->sockfd;
-    struct sockaddr_in *dest_addr = &(targs->addr);
-    while (1)
-    {
-        printf("Enter a message to send to the server: ");
-        fgets(*sendBuffer, messageLength, stdin);
-        sendBuffer[strcspn(*sendBuffer, "\n")] = '\0';
 
-        if (nextSeqNum < base + N)
-        {
-            sndpkt[nextSeqNum] = make_pkt(nextSeqNum, *sendBuffer, checksum((uint8_t*)sendBuffer, strlen(*sendBuffer)));
-            udt_send(&sndpkt[nextSeqNum], sockfd, dest_addr);
-            start_timer(targs, nextSeqNum);
-            nextSeqNum = (nextSeqNum + 1) % MAXSEQ;
-        }
-    }
-}*/
 
 void initSocketAddress(struct sockaddr_in *name, char *hostName, unsigned short int port)
 {

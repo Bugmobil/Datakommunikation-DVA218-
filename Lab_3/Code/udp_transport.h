@@ -31,7 +31,7 @@ extern int base, nextSeqNum, expectedSeqNum;
 extern bool runThreads;
 
 // Arrays
-extern Packet sndpkt[MAX_PKT];
+extern Packet sndpkt[MAXSEQ];
 extern Packet outOfOrder_buffer[MAXSEQ];
 extern int ACK_buffer[MAXSEQ];
 extern pthread_t timerThreads[MAXSEQ];
@@ -59,6 +59,7 @@ int checkCorrupt(const uint8_t *data, size_t len, uint32_t rcvChecksum);
 int checkSeqNum(int rcvSeqNum, int expSeqNum);
 
 // Functions for timers
+void printLoadingBar();
 void start_timer(struct thread_args *args, int seqNum);
 void restart_timer(struct thread_args *args, int seqNum);
 void stop_timer(int seqNum);
@@ -66,5 +67,10 @@ void *timeout(void *arg);
 
 
 /* =============== End of Functions =============== */
+
+
+/* =============== Sliding window =============== */
+
+
 
 #endif

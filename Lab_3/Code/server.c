@@ -15,10 +15,10 @@
 pthread_mutex_t mutex;
 
 
-pthread_t sendThread, rcvThread, timerThread;
+pthread_t rcvThread,sendThread, timerThread;
 struct thread_args sendTargs;
 int ACK_buffer[MAXSEQ];
-
+char window[WINSIZE];
 void GenerateMGS(char* sendMSG, int maxLen)
 {
     srand(time(NULL));
@@ -41,7 +41,7 @@ void sendData(void *args)
     {
         //printf("Enter a message to send to the client:\n");
         //fgets(sendMSG, messageLength, stdin);
-        usleep(10000);
+        sleep(1);
         GenerateMGS(sendMSG, messageLength);
         sendMSG[strlen(sendMSG) - 1] = '\0';
         if(strncmp(sendMSG,"quit\n",messageLength) != 0)
@@ -58,6 +58,16 @@ void sendData(void *args)
                 printf("Packet sent: %d, Base: %d, Next sequence number: %d\n", sndpkt[nextSeqNum-1].seqNum, base, nextSeqNum);
                 pthread_mutex_unlock(&mutex); // Unlock the mutex
             }
+            else
+            {
+                printf("Buffer full. Waiting for ACKs.\n");
+                //print the packets in the buffer
+                for (int i = base; i < nextSeqNum; i++)
+                {
+                    printPacket(sndpkt[i]);
+                }
+            }
+            
         }
         else
         {  
@@ -127,7 +137,9 @@ int main()
     socklen_t rcvAddrLen;
     base = 1;
     nextSeqNum = 1;
-
+    window[WINSIZE] = '-';
+    
+    sleep(1);
     printf("One small step for dev...\n");
 
     // Create a UDP socket
@@ -159,23 +171,14 @@ int main()
 
     ServerSetup(sendTargs.sockfd, (struct sockaddr *)&sendTargs.addr, &rcvAddrLen);
 
-/*
-    printf("Connecting to server...\n");
-    printf("┌ ・・・・・・・・・・・・・・ ┐\n");
-    printf("┊HOST NAME: %s\n", hostName);
-    printf("┊IP ADDRESS: %d\n", htonl(sendTargs.addr.sin_addr.s_addr));
-    printf("┊PORT: %d\n", ntohs(sendTargs.addr.sin_port));
-    printf("┊SOCKET: %d\n", sendTargs.sockfd);
-    printf("└ ・・・・・・・・・・・・・・ ┘\n");*/
-
     pthread_mutex_init(&mutex, NULL);
-    pthread_create(&rcvThread, NULL, (void *)sendData, (void *)&sendTargs);
-    rcvData(&sendTargs);
-
+    pthread_create(&sendThread, NULL, (void *)sendData, (void *)&sendTargs);
+    pthread_create(&rcvThread, NULL, (void *)rcvData, (void *)&sendTargs);
 
     pthread_join(rcvThread, NULL);
-    //pthread_create(&sendThread, NULL, (void *)timeout, (void *)&sendTargs);
-    //pthread_join(sendThread, NULL);
+    pthread_join(rcvThread, NULL);
+
+    timeout(&sendTargs);
     
 
     ServerTeardown(sendTargs.sockfd, (struct sockaddr *)&sendTargs.addr, &rcvAddrLen);
