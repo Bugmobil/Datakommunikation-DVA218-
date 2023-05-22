@@ -63,12 +63,12 @@ void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
     pkt->dataSize = strlen(pkt->data);
     Serialize(buffer, *pkt); // Serialize the packet into a buffer
 
-    // Use sendto() to send the serialized packet using the UDP socket
-    int bytes = sendto(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
+    // Use SendFaulty() to send the serialized packet using the UDP socket
+    int bytes = SendFaulty(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
     if (bytes < 0)
     {
         errorLocation(__FUNCTION__, __FILE__, __LINE__);
-        errorMSG("udt_send() --> sendto()");
+        errorMSG("udt_send() --> SendFaulty()");
     }
     else
     {

@@ -26,7 +26,7 @@ void ClientSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
         if(ReceiveSYNACK(fd, addr, addrLen)) break;
     }
 
-    printf("SYNACK Received. Sending ACK...\n");
+    printf(BLU "SYNACK Received. Sending ACK...\n" RESET);
     SendACK(fd, addr, *addrLen);
     StartTimer(&startTime);
 
@@ -54,7 +54,6 @@ void ClientSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
 void ServerSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
 {
     printf("Server Setup Initiated\n");
-
     struct timeval timeout;
     timeout.tv_sec = 0;
     timeout.tv_usec = TIMEOUTUSEC;
@@ -64,7 +63,7 @@ void ServerSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
     {
         if(ReceiveSYN(fd, addr, addrLen))
         {
-            printf("SYN Received\n");
+            printf(BLU "SYN Received\n" RESET);
             SendSYNACK(fd, addr, *addrLen);
             break;
         }

@@ -6,7 +6,6 @@
  ============================================================================
  */
 
-#include <pthread.h>
 #include "udp_transport.h"
 #include "Utils.h"
 #include "Setup.h"
@@ -20,7 +19,6 @@ int ACK_buffer[NUMFRAMES];
 
 void GenerateMGS(char *sendMSG, int maxLen)
 {
-    srand(time(NULL));
     size_t i;
     int length = GiveRandomNumber(5, maxLen - 1);
     for (i = 0; i < length; i++)
@@ -139,12 +137,13 @@ int main()
     nextSeqNum = 0;
     runThreads = true;
     //printf("One small step for dev...\n");
-
+    srand(time(NULL));
+    
     for (int i = 0; i < NUMFRAMES; i++)
     {
         InitPacket(&sndpkt[i]);
     }
-    
+
     // Create a UDP socket
     sendTargs.sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sendTargs.sockfd < 0)

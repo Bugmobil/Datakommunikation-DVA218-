@@ -10,6 +10,7 @@
 #include "Utils.h"
 
 char *testData = "These are the frames that we want to send to the server in correct order and without errors in the data or the ACKs";
+pthread_t sendThread;
 
 void InitPacket(Packet *packet)
 {
@@ -84,7 +85,7 @@ void SendFlagPacket(int fd, struct sockaddr *destAddr, socklen_t addrLen, const 
     packet.FIN = flags[2] & 1;
     packet.NACK = flags[3] & 1;
     Serialize(serPkt, packet);
-    sendto(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
+    SendFaulty(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
 }
 int ReceiveFlagPacket(int fd, struct sockaddr *src_addr, socklen_t *addrLen, const char* flags)
 {
@@ -95,7 +96,7 @@ int ReceiveFlagPacket(int fd, struct sockaddr *src_addr, socklen_t *addrLen, con
     {
         Deserialize(buffer, &packet);
 
-        printf("ACK: %d == %d \t SYN: %d == %d \t FIN: %d == %d \t NACK: %d == %d\n", 
+        printf("Received: ACK: %d == %d \t SYN: %d == %d \t FIN: %d == %d \t NACK: %d == %d\n", 
         packet.ACK, flags[0] & 1, packet.SYN, flags[1] & 1, packet.FIN, flags[2] & 1, packet.NACK, flags[3] & 1);
 
         return 
@@ -132,23 +133,48 @@ int GiveRandomNumber(const int from, const int to)
 void CorruptPacket(char* packet)
 {
     int errorRate;
-    srand(time(NULL));
     errorRate = GiveRandomNumber(33, 67);
     CorruptPacketPercentage(packet, errorRate);
 }
 void CorruptPacketPercentage(char* packet, int errorRate)
 {
     size_t i;
-    srand(time(NULL));
-
     for (i = 0; i < PACKET_SIZE; i++)
     {
         if(packet[i] != '\0' && GiveRandomNumber(1, 100) <= errorRate)
         {
-            packet[i] ^= (1 << (rand() % 8));
+            packet[i] ^= (1 << (GiveRandomNumber(1, 8)));
         }
     }
 }
+
+void ThreadSendDelay(ThreadSend* packet)
+{
+    usleep(PROPDELAY * 1000);
+    packet->returnValue = sendto(packet->fd, packet->buffer, packet->size, 0, packet->destAddr, packet->addrLen);
+}
+int SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen)
+{
+    ThreadSend packet;
+    if(GiveRandomNumber(1, 3) >= 2)
+    {
+        if(GiveRandomNumber(1, 3) >= 2)
+        {
+            CorruptPacket(buffer);
+        }
+        packet.fd = fd;
+        packet.buffer = buffer;
+        packet.size = size;
+        packet.flags = flags;
+        packet.destAddr = destAddr;
+        packet.addrLen = addrLen;
+        pthread_create(&sendThread, NULL, (void *)ThreadSendDelay, (void *)&packet);
+        pthread_join(sendThread, NULL);
+        return packet.returnValue;
+    }
+    return 1;
+}
+
 void printPacket(Packet pkt)
 {
     printf(BLU "\n\n┌ ・・・・・・・・・・・・・・ ┐\n"RESET);
@@ -181,21 +207,18 @@ void successMSG(char *msg)
     printf("Function %s executed", msg);
     printf(GRN " successfully\n" RESET);
 }
-
 void successPKT(int seqNum)
 {
     printf(GRN "Packet successfully sent! " RESET);
     printf("Sequence number: ");
     printf(MAG " %d\n" RESET, seqNum);
 }
-
 void successACK(int seqNum)
 {
     printf(GRN "Received ACK for packet with " RESET);
     printf("Sequence number: ");
     printf(MAG " %d\n" RESET, seqNum);
 }
-
 void corruptedMSG(int seqNum)
 {
     printf(RED "Corrupted packet! " RESET);

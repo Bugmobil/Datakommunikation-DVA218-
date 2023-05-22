@@ -105,6 +105,8 @@ int main(int argc, char *argv[])
     struct thread_args sendTargs;
     socklen_t serverAddrLen;
     expectedSeqNum = 0;
+
+    srand(time(NULL));
     /* Check arguments */
     if (argv[1] == NULL)
     {
