@@ -34,13 +34,47 @@
 #define SERVER_IP "127.0.0.1"
 #define hostNameLength 50
 #define messageLength 256
-#define PACKET_SIZE messageLength + sizeof(uint16_t) + 4 * sizeof(uint32_t)
-#define TIMEOUT 2
-#define TIMEOUTLONG TIMEOUT * 20
+#define PACKET_SIZE FRAMESIZE + sizeof(uint16_t) + 4 * sizeof(uint32_t)
+//#define TIMEOUT 1
+#define TIMEOUTLONG TIMEOUT * 10
 #define TIMEOUTUSEC TIMEOUT * 1000
-#define N 5 // window size
-#define MAXSEQ 25600
-#define MAX_PKT 10
+//#define MAXSEQ 30
+//#define N MAXSEQ/2 // window size
+
+
+/*======== START VALUES ========*/
+
+/*Add this to print on failed run values*/
+/*
+Error: frame size must be at least 1 byte
+Error: link speed must be at least 1 kbps
+Error: number of frames must be at least 1
+Error: propagation delay must be at least 1 ms
+Error: window size must be at least 1
+
+Usage: server <options>
+
+-e ERRORRATE  use ERRORRATE (1-99) as error rate in percent (default 0)
+-f FRAMESIZE  use FRAMESIZE (1-3000) as frame size in bytes
+-l LINKSPEED  use LINKSPEED (1-10000) in kilobits (1000 bits) per seconds
+-n NUMFRAMES  use NUMFRAMES (1-1000) as number of frames
+-p PROPDELAY  use PROPDELAY (1-1000) as one-way propagation delay in ms
+-t TIMEOUT    use TIMEOUT   (1-5000) as timeout in ms (default 200)
+-v            verbose output (shows timing for all frames) 
+-w WINSIZE    use WINSIZE   (1-1024) as window size in number of frames
+-?            shows this help 
+*/
+
+#define ERRORRATE 0 // (1-99) as error rate in percent (default 0)
+#define FRAMESIZE 20 // (1-3000) as frame size in bytes
+#define LINKSPEED 100 // (1-10000) in kilobits (1000 bits) per seconds
+#define NUMFRAMES  100 // (1-1000) as number of frames
+#define PROPDELAY  10 // (1-1000) as one-way propagation delay in ms
+#define TIMEOUT    200 // (1-5000) as timeout in ms (default 200)
+#define WINSIZE    16 // (1-1024) as window size in number of frames
+
+
+/*======== END OF START VALUES ========*/
 
 char hostName[hostNameLength];
 extern char *testData;

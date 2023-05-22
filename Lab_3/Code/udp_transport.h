@@ -31,10 +31,10 @@ extern int base, nextSeqNum, expectedSeqNum;
 extern bool runThreads;
 
 // Arrays
-extern Packet sndpkt[MAX_PKT];
-extern Packet outOfOrder_buffer[MAXSEQ];
-extern int ACK_buffer[MAXSEQ];
-extern pthread_t timerThreads[MAXSEQ];
+extern Packet sndpkt[NUMFRAMES];
+extern Packet outOfOrder_buffer[NUMFRAMES];
+extern int ACK_buffer[NUMFRAMES];
+extern pthread_t timerThreads[NUMFRAMES];
 
 /* =============== End of Globalz =============== */
 
@@ -59,6 +59,7 @@ int checkCorrupt(const uint8_t *data, size_t len, uint32_t rcvChecksum);
 int checkSeqNum(int rcvSeqNum, int expSeqNum);
 
 // Functions for timers
+void printLoadingBar();
 void start_timer(struct thread_args *args, int seqNum);
 void restart_timer(struct thread_args *args, int seqNum);
 void stop_timer(int seqNum);
@@ -66,5 +67,10 @@ void *timeout(void *arg);
 
 
 /* =============== End of Functions =============== */
+
+
+/* =============== Sliding window =============== */
+
+void slidingWindow(char window[WINSIZE]);
 
 #endif

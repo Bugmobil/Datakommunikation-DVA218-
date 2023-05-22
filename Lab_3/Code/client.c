@@ -16,12 +16,11 @@
 pthread_t sendThread, rcvThread;
 pthread_mutex_t mutex;
 
-
 void dataHandling(void *args)
 {
     printf("Initializing data handling thread.\n");
     struct thread_args *targs = (struct thread_args *)args;
-    
+
     while (runThreads)
     {
         Packet pkt;
@@ -30,28 +29,28 @@ void dataHandling(void *args)
         pkt.data[pkt.dataSize] = '\0';
         printf("Packet received:\n");
         printPacket(pkt);
-        pkt.dataSize = strlen(pkt.data); //Adds NULL terminator at the end of the message
+        pkt.dataSize = strlen(pkt.data); // Adds NULL terminator at the end of the message
         if (pkt.dataSize != 0)
         {
-            if (!checkCorrupt((uint8_t*)pkt.data, pkt.dataSize, pkt.checksum))
+            if (!checkCorrupt((uint8_t *)pkt.data, pkt.dataSize, pkt.checksum))
             {
-                if(!checkSeqNum(pkt.seqNum, expectedSeqNum))
+                if (!checkSeqNum(pkt.seqNum, expectedSeqNum))
                 {
                     ACKpkt(targs, true);
-                    
-                    expectedSeqNum = (expectedSeqNum + 1) % MAXSEQ;
+
+                    expectedSeqNum = (expectedSeqNum + 1) % FRAMESIZE;
                     extractAndDeliver(pkt);
-                    
+
                     printf(GRN "Expected sequence number received. Sending ACK to server.\n" RESET);
                     printf(GRN "Packet %d extracted and sent to application layer.\n" RESET, pkt.seqNum);
                     printf("Expected sequence number incremented to: %d\n", expectedSeqNum);
-                
+
                     while (outOfOrder_buffer[expectedSeqNum].seqNum == expectedSeqNum)
                     {
                         pkt = outOfOrder_buffer[expectedSeqNum];
                         extractAndDeliver(pkt);
                         printf(YEL "Packet %d extracted from out-of-order buffer and sent to application layer.\n" RESET, pkt.seqNum);
-                        expectedSeqNum = (expectedSeqNum + 1) % MAXSEQ;
+                        expectedSeqNum = (expectedSeqNum + 1) % FRAMESIZE;
                         printf("Expected sequence number incremented to: %d\n", expectedSeqNum);
                     }
                 }
@@ -68,60 +67,41 @@ void dataHandling(void *args)
                 ACKpkt(targs, false);
             }
         }
+        else if (pkt.FIN == 1)
+        {
+            runThreads = false;
+        }
     }
 }
 
-/*void *sendData(void *args)
-{
-    struct thread_args *targs = (struct thread_args *)args;
-    char *sendBuffer[messageLength];
-    int sockfd = targs->sockfd;
-    struct sockaddr_in *dest_addr = &(targs->addr);
-    while (1)
-    {
-        printf("Enter a message to send to the server: ");
-        fgets(*sendBuffer, messageLength, stdin);
-        sendBuffer[strcspn(*sendBuffer, "\n")] = '\0';
-
-        if (nextSeqNum < base + N)
-        {
-            sndpkt[nextSeqNum] = make_pkt(nextSeqNum, *sendBuffer, checksum((uint8_t*)sendBuffer, strlen(*sendBuffer)));
-            udt_send(&sndpkt[nextSeqNum], sockfd, dest_addr);
-            start_timer(targs, nextSeqNum);
-            nextSeqNum = (nextSeqNum + 1) % MAXSEQ;
-        }
-    }
-}*/
-
 void initSocketAddress(struct sockaddr_in *name, char *hostName, unsigned short int port)
 {
-    name->sin_family = AF_INET;  
-    name->sin_port = htons(port); 
-    struct hostent *hostInfo = gethostbyname(hostName); 
+    name->sin_family = AF_INET;
+    name->sin_port = htons(port);
+    struct hostent *hostInfo = gethostbyname(hostName);
 
-    if(hostInfo == NULL)
+    if (hostInfo == NULL)
     {
-        errorLocation(__FUNCTION__,__FILE__, __LINE__);
+        errorLocation(__FUNCTION__, __FILE__, __LINE__);
         perror("Unknown host: \n");
         exit(EXIT_FAILURE);
     }
     printf("Host name: %s\n", hostInfo->h_name);
     name->sin_addr = *(struct in_addr *)hostInfo->h_addr_list[0];
-
 }
 
 int main(int argc, char *argv[])
 {
     char hostName[hostNameLength];
-  //  struct hostent *hostInfo;
+    //  struct hostent *hostInfo;
     struct thread_args sendTargs;
     socklen_t serverAddrLen;
 
     srand(time(NULL));
     /* Check arguments */
-    if(argv[1] == NULL)
+    if (argv[1] == NULL)
     {
-        errorLocation(__FUNCTION__,__FILE__, __LINE__);
+        errorLocation(__FUNCTION__, __FILE__, __LINE__);
         perror("Usage: client [host name]\n");
         exit(EXIT_FAILURE);
     }
@@ -131,7 +111,7 @@ int main(int argc, char *argv[])
         hostName[hostNameLength - 1] = '\0';
     }
 
-    //hostName[hostNameLength - 1] = '\0';
+    // hostName[hostNameLength - 1] = '\0';
 
     // Create a UDP socket
     sendTargs.sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -145,9 +125,12 @@ int main(int argc, char *argv[])
     serverAddrLen = sizeof(sendTargs.addr);
 
     int flags = fcntl(sendTargs.sockfd, F_GETFL, 0);
-    if (flags & O_NONBLOCK) {
+    if (flags & O_NONBLOCK)
+    {
         printf("Socket is non-blocking\n");
-    } else {
+    }
+    else
+    {
         printf("Socket is blocking\n");
     }
 
@@ -163,12 +146,16 @@ int main(int argc, char *argv[])
 
     expectedSeqNum = 1;
     dataHandling((void *)&sendTargs);
-    //pthread_create(&rcvThread, NULL, (void*)dataHandling, (void *)&sendTargs);
-    //pthread_join(rcvThread, NULL);
-    //pthread_create(&sendThread, NULL, (void*)sendData, (void *)&sendTargs);
+    // pthread_create(&rcvThread, NULL, (void*)dataHandling, (void *)&sendTargs);
+    // pthread_join(rcvThread, NULL);
+    // pthread_create(&sendThread, NULL, (void*)sendData, (void *)&sendTargs);
 
+    if (runThreads == false)
+    {
+        printf("Closing connection...\n");
+        ClientTeardown(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), &serverAddrLen);
+        close(sendTargs.sockfd);
+    }
 
-    ClientTeardown(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), &serverAddrLen);    
-    close(sendTargs.sockfd);
     return 0;
 }

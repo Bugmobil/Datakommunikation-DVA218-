@@ -43,10 +43,10 @@ void Serialize(char *serializedPacket, Packet packet)
 
     memcpy(serializedPacket, &flags, sizeof(uint16_t));
     memcpy(serializedPacket + sizeof(uint16_t), &packet.data, packet.dataSize);
-    memcpy(serializedPacket + messageLength + sizeof(uint16_t), &dataSize, sizeof(uint32_t));
-    memcpy(serializedPacket + messageLength + sizeof(uint16_t) + sizeof(uint32_t), &seqNum, sizeof(uint32_t));
-    memcpy(serializedPacket + messageLength + sizeof(uint16_t) + 2 * sizeof(uint32_t), &timestamp, sizeof(uint32_t));
-    memcpy(serializedPacket + messageLength + sizeof(uint16_t) + 3 * sizeof(uint32_t), &checksum, sizeof(uint32_t));
+    memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t), &dataSize, sizeof(uint32_t));
+    memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t) + sizeof(uint32_t), &seqNum, sizeof(uint32_t));
+    memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t) + 2 * sizeof(uint32_t), &timestamp, sizeof(uint32_t));
+    memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t) + 3 * sizeof(uint32_t), &checksum, sizeof(uint32_t));
 }
 void Deserialize(char *serializedPacket, Packet *packet)
 {
@@ -57,10 +57,10 @@ void Deserialize(char *serializedPacket, Packet *packet)
     uint32_t checksum;
 
     memcpy(&flags, serializedPacket, sizeof(uint16_t));
-    memcpy(&dataSize, serializedPacket + messageLength + sizeof(uint16_t), sizeof(uint32_t));
-    memcpy(&seqNum, serializedPacket + messageLength + sizeof(uint16_t) + sizeof(uint32_t), sizeof(uint32_t));
-    memcpy(&timestamp, serializedPacket + messageLength + sizeof(uint16_t) + 2 * sizeof(uint32_t), sizeof(uint32_t));
-    memcpy(&checksum, serializedPacket + messageLength + sizeof(uint16_t) + 3 * sizeof(uint32_t), sizeof(uint32_t));
+    memcpy(&dataSize, serializedPacket + FRAMESIZE + sizeof(uint16_t), sizeof(uint32_t));
+    memcpy(&seqNum, serializedPacket + FRAMESIZE + sizeof(uint16_t) + sizeof(uint32_t), sizeof(uint32_t));
+    memcpy(&timestamp, serializedPacket + FRAMESIZE + sizeof(uint16_t) + 2 * sizeof(uint32_t), sizeof(uint32_t));
+    memcpy(&checksum, serializedPacket + FRAMESIZE + sizeof(uint16_t) + 3 * sizeof(uint32_t), sizeof(uint32_t));
 
     packet->dataSize = ntohl(dataSize);
     memcpy(&packet->data, serializedPacket + sizeof(uint16_t), packet->dataSize);
