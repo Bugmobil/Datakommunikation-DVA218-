@@ -6,7 +6,6 @@
  ============================================================================
  */
 
-#include <semaphore.h>
 #include <pthread.h>
 #include "udp_transport.h"
 #include "Utils.h"
@@ -14,12 +13,11 @@
 #include "Teardown.h"
 pthread_mutex_t mutex;
 
-
-pthread_t rcvThread,sendThread, timerThread;
+pthread_t rcvThread, sendThread, timerThread;
 struct thread_args sendTargs;
-int ACK_buffer[MAXSEQ];
+int ACK_buffer[NUMFRAMES];
 char window[WINSIZE];
-void GenerateMGS(char* sendMSG, int maxLen)
+void GenerateMGS(char *sendMSG, int maxLen)
 {
     srand(time(NULL));
     size_t i;
@@ -35,42 +33,39 @@ void GenerateMGS(char* sendMSG, int maxLen)
 void sendData(void *args)
 {
     struct thread_args *targs = (struct thread_args *)args;
-    char sendMSG[messageLength];
-    //pthread_cond_wait(&cond, &mutex); // Wait for the receiver to be ready
+    char sendMSG[FRAMESIZE];
+
     while (runThreads)
     {
-        //printf("Enter a message to send to the client:\n");
-        //fgets(sendMSG, messageLength, stdin);
+        // printf("Enter a message to send to the client:\n");
+        // fgets(sendMSG, messageLength, stdin);
         sleep(1);
-        GenerateMGS(sendMSG, messageLength);
+        GenerateMGS(sendMSG, FRAMESIZE);
         sendMSG[strlen(sendMSG) - 1] = '\0';
-        if(strncmp(sendMSG,"quit\n",messageLength) != 0)
+        if (strncmp(sendMSG, "quit\n", FRAMESIZE) != 0)
         {
-            if (nextSeqNum < base + N)
+            if (nextSeqNum < base + WINSIZE)
             {
                 pthread_mutex_lock(&mutex); // Lock the mutex
                 // Create packet, send it, and store it in the buffer
-                sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG, checksum((u_int8_t*)sendMSG, strlen(sendMSG)));
+                sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG, checksum((u_int8_t *)sendMSG, strlen(sendMSG)));
                 udt_send(&sndpkt[nextSeqNum], targs->sockfd, &(targs->addr));
                 targs->seqNum = nextSeqNum;
-                start_timer(targs,nextSeqNum);
-                nextSeqNum = (nextSeqNum + 1) % MAXSEQ;
-                printf("Packet sent: %d, Base: %d, Next sequence number: %d\n", sndpkt[nextSeqNum-1].seqNum, base, nextSeqNum);
+                start_timer(targs, nextSeqNum);
+                window[nextSeqNum - 1] = '1';
+                nextSeqNum = (nextSeqNum + 1) % NUMFRAMES;
+                
+                
+                printf("Packet sent: %d, Base: %d, Next sequence number: %d\n", sndpkt[nextSeqNum - 1].seqNum, base, nextSeqNum);
+
+                slidingWindow(window);
+                fflush(stdout);
+
                 pthread_mutex_unlock(&mutex); // Unlock the mutex
             }
-            else
-            {
-                printf("Buffer full. Waiting for ACKs.\n");
-                //print the packets in the buffer
-                for (int i = base; i < nextSeqNum; i++)
-                {
-                    printPacket(sndpkt[i]);
-                }
-            }
-            
         }
         else
-        {  
+        {
             close(targs->sockfd);
             runThreads = false;
             exit(EXIT_SUCCESS);
@@ -90,16 +85,19 @@ void rcvData(void *args)
 
         Packet rcvpkt;
         InitPacket(&rcvpkt);
-        rdt_rcv(&rcvpkt, targs->sockfd,&(targs->addr));
+        rdt_rcv(&rcvpkt, targs->sockfd, &(targs->addr));
         pthread_mutex_lock(&mutex); // Lock the mutex
         printPacket(rcvpkt);
         if (rcvpkt.ACK == 1) // If the packet is an ACK
         {
             if (base == rcvpkt.seqNum) // If the ACK is for the packet at the base of the buffer
             {
-                stop_timer(rcvpkt.seqNum); // Stop the timer for the packet
-                base = (base + 1) % MAXSEQ; // Move the base forward
+                stop_timer(rcvpkt.seqNum);  // Stop the timer for the packet
+                window[base - 1] = '-';     // Remove the packet from the window
+                base = (base + 1) % NUMFRAMES; // Move the base forward
                 successACK(rcvpkt.seqNum);
+                slidingWindow(window);
+                fflush(stdout);
 
                 // Check for any out of order ACKs
                 while (ACK_buffer[base])
@@ -107,7 +105,10 @@ void rcvData(void *args)
                     ACK_buffer[base] = 0;
                     stop_timer(base);
                     printf("Removing out of order ACK for packet sequencenumber %d\n", base);
-                    base = (base + 1) % MAXSEQ;
+                    window[base - 1] = '-';
+                    base = (base + 1) % NUMFRAMES;
+                    slidingWindow(window);
+                    fflush(stdout);
                 }
                 // TODO: Send FIN packet
             }
@@ -117,30 +118,39 @@ void rcvData(void *args)
             {
                 successACK(rcvpkt.seqNum);
                 printf("Buffering out of order ACK for packet sequencenumber %d\n", rcvpkt.seqNum);
+                window[rcvpkt.seqNum - 1] = '-';
                 ACK_buffer[rcvpkt.seqNum] = 1;
                 stop_timer(rcvpkt.seqNum);
+                slidingWindow(window);
+                fflush(stdout);
             }
         }
         else if (rcvpkt.NACK == 1)
         {
             udt_send(&sndpkt[rcvpkt.seqNum], targs->sockfd, &(targs->addr));
-            restart_timer(targs,rcvpkt.seqNum); // Restart the timer for the packet
+            restart_timer(targs, rcvpkt.seqNum); // Restart the timer for the packet
+            window[rcvpkt.seqNum - 1] = '1';
+            slidingWindow(window);
+            fflush(stdout);
         }
         pthread_mutex_unlock(&mutex); // Unlock the mutex
     }
 }
-
-
 
 int main()
 {
     socklen_t rcvAddrLen;
     base = 1;
     nextSeqNum = 1;
-    window[WINSIZE] = '-';
+
+    // Initialize the sliding window
+    for (size_t i = 0; i < WINSIZE; i++)
+    {
+        window[i] = '-';
+    }
     
-    sleep(1);
-    printf("One small step for dev...\n");
+
+    //printf("One small step for dev...\n");
 
     // Create a UDP socket
     sendTargs.sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -150,10 +160,9 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    printf("A plethora of bugs to fix!\n");
+    //printf("A plethora of bugs to fix!\n");
 
     // Set up server address
-    //memset(&sendTargs.addr, 0, sizeof(sendTargs.addr));
     sendTargs.addr.sin_family = AF_INET;
     sendTargs.addr.sin_addr.s_addr = htonl(INADDR_ANY);
     sendTargs.addr.sin_port = htons(PORT);
@@ -179,7 +188,6 @@ int main()
     pthread_join(rcvThread, NULL);
 
     timeout(&sendTargs);
-    
 
     ServerTeardown(sendTargs.sockfd, (struct sockaddr *)&sendTargs.addr, &rcvAddrLen);
 

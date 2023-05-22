@@ -31,10 +31,10 @@ extern int base, nextSeqNum, expectedSeqNum;
 extern bool runThreads;
 
 // Arrays
-extern Packet sndpkt[MAXSEQ];
-extern Packet outOfOrder_buffer[MAXSEQ];
-extern int ACK_buffer[MAXSEQ];
-extern pthread_t timerThreads[MAXSEQ];
+extern Packet sndpkt[NUMFRAMES];
+extern Packet outOfOrder_buffer[NUMFRAMES];
+extern int ACK_buffer[NUMFRAMES];
+extern pthread_t timerThreads[NUMFRAMES];
 
 /* =============== End of Globalz =============== */
 
@@ -71,6 +71,6 @@ void *timeout(void *arg);
 
 /* =============== Sliding window =============== */
 
-
+void slidingWindow(char window[WINSIZE]);
 
 #endif

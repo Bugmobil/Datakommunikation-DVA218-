@@ -10,7 +10,7 @@
 
 #include <pthread.h>
 #include "udp_transport.h"
-#include "ncurses.h"
+
 
 /* =============== End of Structs =============== */
 
@@ -20,10 +20,10 @@ int base = 0, nextSeqNum = 0, expectedSeqNum = 0;
 bool runThreads = true;
 
 // Arrays
-Packet sndpkt[MAXSEQ] = {0};
-Packet outOfOrder_buffer[MAXSEQ] = {0};
-int ACK_buffer[MAXSEQ] = {0};
-pthread_t timerThreads[MAXSEQ] = {0};
+Packet sndpkt[NUMFRAMES] = {0};
+Packet outOfOrder_buffer[NUMFRAMES] = {0};
+int ACK_buffer[NUMFRAMES] = {0};
+pthread_t timerThreads[NUMFRAMES] = {0};
 
 /* =============== End of Globalz =============== */
 
@@ -86,7 +86,6 @@ void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr)
 
     // Receive data using recvfrom() and store it in the buffer
     int bytes = recvfrom(sockfd, buffer, PACKET_SIZE, 0, src_addr, &addr_len);
-
     if (bytes < 0)
     {
         errorLocation(__FUNCTION__,__FILE__, __LINE__);
@@ -95,14 +94,12 @@ void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr)
     else
     {
         Deserialize(buffer, pkt); // Deserialize the buffer into a packet
-        //successMSG("rdt_rcv()");
+        //successMSG("Deserialize ()");
     }
 }
 
 void printLoadingBar() {
-    srand(time(NULL));  // Initialize the random number generator
-
-    printf("[");  // Start of the loading bar
+    printf("Loading");  // Start of the loading bar
 
     for (int i = 0; i < 10; i++) {
         int sleepTime = GiveRandomNumber(500000,1000000);  // Generate a random number between 1 and 2
@@ -112,8 +109,9 @@ void printLoadingBar() {
         fflush(stdout);  // Flush the output buffer to ensure the segment is printed immediately
     }
 
-    printf("]\n");  // End of the loading bar
+    printf("\n");  // End of the loading bar
 }
+
 // Extracts the ACK packet and delivers the data
 void extractAndDeliver(Packet rcvpkt)
 {
@@ -220,24 +218,17 @@ void *timeout(void *arg)
 }
 
 
-void slidingWindow(char window[WINSIZE], int seqNum)
+void slidingWindow(char window[WINSIZE])
 {
-    // Initialize ncurses
-    initscr();
-    noecho();
-    curs_set(FALSE);
-
-    // Print the initial state of the window
-    for (int i = 0; i < WINDOW_SIZE; i++) {
-        mvprintw(0, i * 2, "%c", window[i]);
-    }
-    
+    printf(YEL "Sliding window " RESET);
+    printf("(Size: %d)\n", WINSIZE);
+    printf("[ ");
     //print the sliding window
     for (int i = 0; i < WINSIZE; i++)
     {
-        printf("Sliding window\n");
-        printf("[ ");
-        printf("%c", window[i]);
-        printf(" ]\n");
+        printf("%c ", window[i]);
+        if (i < WINSIZE - 1)
+            printf("| ");
     }
+    printf("]\n");
 }

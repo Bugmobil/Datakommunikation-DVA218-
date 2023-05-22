@@ -1,8 +1,9 @@
-CC = gcc -lncurses
+CC = gcc 
 CFLAGS = -Wall -g -std=c99 -D_POSIX_C_SOURCE=200809L -D_GNU_SOURCE
 OBJ = $(addprefix $(BUILDDIR)/,Setup.o Teardown.o udp_transport.o Utils.o)
 PROGRAMS = client server
 BUILDDIR = build
+OUTPUT = server_output.txt client_output.txt
 
 all: directories ${PROGRAMS}
 
@@ -16,7 +17,7 @@ $(BUILDDIR)/%.o: %.c
 
 .PHONY: clean directories
 clean:
-	rm -f $(BUILDDIR)/*.o $(BUILDDIR)/${PROGRAMS}
+	rm -f $(BUILDDIR)/*.o $(addprefix $(BUILDDIR)/,${PROGRAMS}) $(addprefix $(BUILDDIR)/,${OUTPUT})
 
 directories: 
 	mkdir -p $(BUILDDIR)

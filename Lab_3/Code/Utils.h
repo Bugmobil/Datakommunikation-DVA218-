@@ -32,12 +32,12 @@
 #define SERVER_IP "127.0.0.1"
 #define hostNameLength 50
 #define messageLength 256
-#define PACKET_SIZE messageLength + sizeof(uint16_t) + 4 * sizeof(uint32_t)
-#define TIMEOUT 1
+#define PACKET_SIZE FRAMESIZE + sizeof(uint16_t) + 4 * sizeof(uint32_t)
+//#define TIMEOUT 1
 #define TIMEOUTLONG TIMEOUT * 10
 #define TIMEOUTUSEC TIMEOUT * 1000
-#define MAXSEQ 30
-#define N MAXSEQ/2 // window size
+//#define MAXSEQ 30
+//#define N MAXSEQ/2 // window size
 
 
 /*======== START VALUES ========*/
