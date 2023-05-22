@@ -47,6 +47,7 @@ Packet make_ACKpkt(int seqNum, bool ACK, bool NACK)
     ACKpkt.seqNum = seqNum;
     ACKpkt.ACK = ACK;
     ACKpkt.NACK = NACK;
+    strcpy(ACKpkt.data, "ACK paket");
     ACKpkt.checksum = checksum((uint8_t *)&ACKpkt, sizeof(ACKpkt));
 
     printPacket(ACKpkt);

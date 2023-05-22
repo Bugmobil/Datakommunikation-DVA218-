@@ -31,7 +31,8 @@ void sendData(void *args)
         printf("\n");
         fgets(sendMSG, messageLength, stdin);
         sendMSG[strlen(sendMSG) - 1] = '\0';
-        if(strncmp(sendMSG,"quit\n",messageLength) != 0){
+        if(strncmp(sendMSG,"quit\n",messageLength) != 0)
+        {
             if (nextSeqNum < base + N)
             {
                 pthread_mutex_lock(&mutex); // Lock the mutex
@@ -44,7 +45,8 @@ void sendData(void *args)
                 pthread_mutex_unlock(&mutex); // Unlock the mutex
             }
         }
-        else {  
+        else
+        {  
             close(targs->sockfd);
             runThreads = false;
             exit(EXIT_SUCCESS);
