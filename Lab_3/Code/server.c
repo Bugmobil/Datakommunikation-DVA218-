@@ -30,7 +30,7 @@ void sendData(void *args)
     {
         printf("\n");
         fgets(sendMSG, messageLength, stdin);
-        sendMSG[messageLength - 1] = '\0';
+        sendMSG[strlen(sendMSG) - 1] = '\0';
         if(strncmp(sendMSG,"quit\n",messageLength) != 0){
             if (nextSeqNum < base + N)
             {
