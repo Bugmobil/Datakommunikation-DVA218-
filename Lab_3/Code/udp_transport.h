@@ -23,6 +23,7 @@ struct thread_args
     struct sockaddr_in addr;
 };
 
+
 /* =============== End of Structs =============== */
 
 /* =============== Globalz =============== */
@@ -71,6 +72,6 @@ void *timeout(void *arg);
 
 /* =============== Sliding window =============== */
 
-void slidingWindow(char window[WINSIZE]);
+void slidingWindow();
 
 #endif

@@ -16,7 +16,8 @@ pthread_mutex_t mutex;
 pthread_t rcvThread, sendThread, timerThread;
 struct thread_args sendTargs;
 int ACK_buffer[NUMFRAMES];
-char window[WINSIZE];
+
+
 void GenerateMGS(char *sendMSG, int maxLen)
 {
     srand(time(NULL));
@@ -44,7 +45,7 @@ void sendData(void *args)
         sendMSG[strlen(sendMSG) - 1] = '\0';
         if (strncmp(sendMSG, "quit\n", FRAMESIZE) != 0)
         {
-            if (nextSeqNum < base + WINSIZE)
+            if (nextSeqNum < base + NUMFRAMES)
             {
                 pthread_mutex_lock(&mutex); // Lock the mutex
                 // Create packet, send it, and store it in the buffer
@@ -52,13 +53,9 @@ void sendData(void *args)
                 udt_send(&sndpkt[nextSeqNum], targs->sockfd, &(targs->addr));
                 targs->seqNum = nextSeqNum;
                 start_timer(targs, nextSeqNum);
-                window[nextSeqNum - 1] = '1';
                 nextSeqNum = (nextSeqNum + 1) % NUMFRAMES;
-                
-                
-                printf("Packet sent: %d, Base: %d, Next sequence number: %d\n", sndpkt[nextSeqNum - 1].seqNum, base, nextSeqNum);
-
-                slidingWindow(window);
+                 
+                slidingWindow();
                 fflush(stdout);
 
                 pthread_mutex_unlock(&mutex); // Unlock the mutex
@@ -76,7 +73,7 @@ void sendData(void *args)
 // This function is for ACKs and NACKs from the receiver
 void rcvData(void *args)
 {
-    successMSG("rcvData");
+    //successMSG("rcvData");
     struct thread_args *targs = (struct thread_args *)args;
     while (runThreads)
     {
@@ -87,16 +84,16 @@ void rcvData(void *args)
         InitPacket(&rcvpkt);
         rdt_rcv(&rcvpkt, targs->sockfd, &(targs->addr));
         pthread_mutex_lock(&mutex); // Lock the mutex
-        printPacket(rcvpkt);
+       // printPacket(rcvpkt);
         if (rcvpkt.ACK == 1) // If the packet is an ACK
         {
             if (base == rcvpkt.seqNum) // If the ACK is for the packet at the base of the buffer
             {
+                InitPacket(&sndpkt[base]); // Clear the packet from the buffer
                 stop_timer(rcvpkt.seqNum);  // Stop the timer for the packet
-                window[base - 1] = '-';     // Remove the packet from the window
                 base = (base + 1) % NUMFRAMES; // Move the base forward
                 successACK(rcvpkt.seqNum);
-                slidingWindow(window);
+                slidingWindow();
                 fflush(stdout);
 
                 // Check for any out of order ACKs
@@ -105,9 +102,8 @@ void rcvData(void *args)
                     ACK_buffer[base] = 0;
                     stop_timer(base);
                     printf("Removing out of order ACK for packet sequencenumber %d\n", base);
-                    window[base - 1] = '-';
                     base = (base + 1) % NUMFRAMES;
-                    slidingWindow(window);
+                    slidingWindow();
                     fflush(stdout);
                 }
                 // TODO: Send FIN packet
@@ -117,11 +113,11 @@ void rcvData(void *args)
             else
             {
                 successACK(rcvpkt.seqNum);
+                InitPacket(&sndpkt[rcvpkt.seqNum]);
                 printf("Buffering out of order ACK for packet sequencenumber %d\n", rcvpkt.seqNum);
-                window[rcvpkt.seqNum - 1] = '-';
                 ACK_buffer[rcvpkt.seqNum] = 1;
                 stop_timer(rcvpkt.seqNum);
-                slidingWindow(window);
+                slidingWindow();
                 fflush(stdout);
             }
         }
@@ -129,8 +125,7 @@ void rcvData(void *args)
         {
             udt_send(&sndpkt[rcvpkt.seqNum], targs->sockfd, &(targs->addr));
             restart_timer(targs, rcvpkt.seqNum); // Restart the timer for the packet
-            window[rcvpkt.seqNum - 1] = '1';
-            slidingWindow(window);
+            slidingWindow();
             fflush(stdout);
         }
         pthread_mutex_unlock(&mutex); // Unlock the mutex
@@ -140,18 +135,16 @@ void rcvData(void *args)
 int main()
 {
     socklen_t rcvAddrLen;
-    base = 1;
-    nextSeqNum = 1;
-
-    // Initialize the sliding window
-    for (size_t i = 0; i < WINSIZE; i++)
-    {
-        window[i] = '-';
-    }
-    
-
+    base = 0;
+    nextSeqNum = 0;
+    runThreads = true;
     //printf("One small step for dev...\n");
 
+    for (int i = 0; i < NUMFRAMES; i++)
+    {
+        InitPacket(&sndpkt[i]);
+    }
+    
     // Create a UDP socket
     sendTargs.sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sendTargs.sockfd < 0)

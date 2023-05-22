@@ -88,6 +88,7 @@ typedef struct
     int seqNum;
     time_t timestamp;
     uint32_t checksum;
+    char status;
 } Packet;
 
 /* Terminal Colors */

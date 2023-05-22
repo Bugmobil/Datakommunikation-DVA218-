@@ -131,8 +131,8 @@ void ACKpkt(struct thread_args *args, bool isACK)
     else
         NACK = true;
 
-    sndpkt[expectedSeqNum] = make_ACKpkt(expectedSeqNum, ACK, NACK);
-    udt_send(&sndpkt[expectedSeqNum], args->sockfd, &(args->addr));
+    sndpkt[args->seqNum] = make_ACKpkt(args->seqNum, ACK, NACK);
+    udt_send(&sndpkt[args->seqNum], args->sockfd, &(args->addr));
 }
 
 /*
@@ -148,7 +148,7 @@ uint32_t checksum(const uint8_t *data, size_t len)
         hash = ((hash << 5) + hash) + data[i]; // hash * 33 + data[i]
     }
 
-    successMSG("checksum()");
+    //successMSG("checksum()");
     return hash;
 }
 
@@ -159,7 +159,7 @@ Returns 0 if the packet is not corrupted.
 */
 int checkCorrupt(const uint8_t *data, size_t len, uint32_t rcvChecksum)
 {
-    successMSG("checkCorrupt()");
+    //successMSG("checkCorrupt()");
     return rcvChecksum - checksum(data, len);
 }
 
@@ -169,7 +169,7 @@ Returns 0 if the received sequence number is the expected sequence number
 */
 int checkSeqNum(int rcvSeqNum, int expSeqNum)
 {
-    successMSG("checkSeqNum()");
+   //successMSG("checkSeqNum()");
     return rcvSeqNum - expSeqNum;
 }
 
@@ -202,7 +202,7 @@ void *timeout(void *arg)
     while (runThreads)
     {
         // Sleep for the timeout duration
-        sleep(TIMEOUT+5);
+        usleep(TIMEOUT);
         // Check if the packet has been acknowledged
         if (!sndpkt[targs->seqNum].ACK && !sndpkt[targs->seqNum].NACK)
         {
@@ -218,17 +218,19 @@ void *timeout(void *arg)
 }
 
 
-void slidingWindow(char window[WINSIZE])
+void slidingWindow()
 {
-    printf(YEL "Sliding window " RESET);
+
+    printf(YEL "\n\nSliding window " RESET);
     printf("(Size: %d)\n", WINSIZE);
     printf("[ ");
-    //print the sliding window
+    //sequence numbers
     for (int i = 0; i < WINSIZE; i++)
     {
-        printf("%c ", window[i]);
+        printf("%d ", sndpkt[i].seqNum);
+
         if (i < WINSIZE - 1)
             printf("| ");
     }
-    printf("]\n");
+    printf("]\n\n");
 }

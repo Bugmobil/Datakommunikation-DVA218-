@@ -19,7 +19,7 @@ void InitPacket(Packet *packet)
     packet->NACK = 0;
     packet->data[0] = '\0';
     packet->dataSize = 0;
-    packet->seqNum = 0;
+    packet->seqNum = -1;
     packet->timestamp = 0;
     packet->checksum = 0;
 }
@@ -151,12 +151,12 @@ void CorruptPacketPercentage(char* packet, int errorRate)
 }
 void printPacket(Packet pkt)
 {
-    printf("┌ ・・・・・・・・・・・・・・ ┐\n");
+    printf(BLU "\n\n┌ ・・・・・・・・・・・・・・ ┐\n"RESET);
     printf("┊DATA: %s\n", pkt.data);
     printf("┊SEQ NUM: %d\n", pkt.seqNum);
     printf("┊ACK/NACK: %d/%d\n", pkt.ACK, pkt.NACK);
     printf("┊CHECKSUM: %d\n", pkt.checksum);
-    printf("└ ・・・・・・・・・・・・・・ ┘\n");
+    printf(BLU "└ ・・・・・・・・・・・・・・ ┘\n\n"RESET);
 }
 
 /* Error Handling */

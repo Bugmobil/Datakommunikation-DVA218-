@@ -15,6 +15,7 @@
 
 pthread_t sendThread, rcvThread;
 pthread_mutex_t mutex;
+int NACKsent = 0, ACKsent = 0;
 
 void dataHandling(void *args)
 {
@@ -32,12 +33,14 @@ void dataHandling(void *args)
         pkt.dataSize = strlen(pkt.data); // Adds NULL terminator at the end of the message
         if (pkt.dataSize != 0)
         {
+            targs->seqNum = pkt.seqNum;
             if (!checkCorrupt((uint8_t *)pkt.data, pkt.dataSize, pkt.checksum))
             {
                 if (!checkSeqNum(pkt.seqNum, expectedSeqNum))
                 {
                     ACKpkt(targs, true);
 
+                    slidingWindow();
                     expectedSeqNum = (expectedSeqNum + 1) % FRAMESIZE;
                     extractAndDeliver(pkt);
 
@@ -59,16 +62,21 @@ void dataHandling(void *args)
                     outOfOrder_buffer[pkt.seqNum] = pkt;
                     ACKpkt(targs, true);
                     printf(BLU "Packet out of order. Sending ACK to server.\n" RESET);
+                    slidingWindow();
                 }
+               // printf("ACK's sent: %d, NACK's sent: %d, Next sequence number: %d\n", ACKsent,NACKsent,expectedSeqNum);
+                
             }
             else
             {
                 printf(RED "Packet is corrupt. Sending NACK to server.\n" RESET);
                 ACKpkt(targs, false);
+                slidingWindow();
             }
         }
         else if (pkt.FIN == 1)
         {
+            slidingWindow();
             runThreads = false;
         }
     }
@@ -96,7 +104,7 @@ int main(int argc, char *argv[])
     //  struct hostent *hostInfo;
     struct thread_args sendTargs;
     socklen_t serverAddrLen;
-
+    expectedSeqNum = 0;
     /* Check arguments */
     if (argv[1] == NULL)
     {
@@ -143,7 +151,6 @@ int main(int argc, char *argv[])
 
     ClientSetup(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), &serverAddrLen);
 
-    expectedSeqNum = 1;
     dataHandling((void *)&sendTargs);
     // pthread_create(&rcvThread, NULL, (void*)dataHandling, (void *)&sendTargs);
     // pthread_join(rcvThread, NULL);
