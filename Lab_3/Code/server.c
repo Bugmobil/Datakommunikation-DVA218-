@@ -15,6 +15,7 @@ pthread_mutex_t mutex;
 pthread_t rcvThread, sendThread, timerThread;
 struct thread_args sendTargs;
 int ACK_buffer[NUMFRAMES];
+int framesSent = 0;
 
 
 void GenerateMGS(char *sendMSG, int maxLen)
@@ -38,10 +39,10 @@ void sendData(void *args)
     {
         // printf("Enter a message to send to the client:\n");
         // fgets(sendMSG, messageLength, stdin);
+        //sendMSG[strlen(sendMSG) - 1] = '\0'; //Removes the '\n' at the end when gets is used
         sleep(1);
         GenerateMGS(sendMSG, FRAMESIZE);
-        sendMSG[strlen(sendMSG) - 1] = '\0';
-        if (strncmp(sendMSG, "quit\n", FRAMESIZE) != 0)
+        if (framesSent == NUMFRAMES)
         {
             if (nextSeqNum < base + NUMFRAMES)
             {
@@ -90,6 +91,7 @@ void rcvData(void *args)
                 InitPacket(&sndpkt[base]); // Clear the packet from the buffer
                 stop_timer(rcvpkt.seqNum);  // Stop the timer for the packet
                 base = (base + 1) % NUMFRAMES; // Move the base forward
+                framesSent++;
                 successACK(rcvpkt.seqNum);
                 slidingWindow();
                 fflush(stdout);
@@ -101,6 +103,7 @@ void rcvData(void *args)
                     stop_timer(base);
                     printf("Removing out of order ACK for packet sequencenumber %d\n", base);
                     base = (base + 1) % NUMFRAMES;
+                    framesSent++;
                     slidingWindow();
                     fflush(stdout);
                 }
