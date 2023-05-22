@@ -158,7 +158,7 @@ int SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destA
     ThreadSend packet;
     if(GiveRandomNumber(1, 3) >= 2)
     {
-        if(GiveRandomNumber(1, 3) >= 2)
+        if(GiveRandomNumber(1, 100) <= ERRORRATE)
         {
             CorruptPacket(buffer);
         }
@@ -169,7 +169,6 @@ int SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destA
         packet.destAddr = destAddr;
         packet.addrLen = addrLen;
         pthread_create(&sendThread, NULL, (void *)ThreadSendDelay, (void *)&packet);
-        pthread_join(sendThread, NULL);
         return packet.returnValue;
     }
     return 1;

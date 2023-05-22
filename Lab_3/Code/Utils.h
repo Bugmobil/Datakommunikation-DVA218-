@@ -71,7 +71,7 @@ Usage: server <options>
 #define TIMEOUT    200 // (1-5000) as timeout in ms (default 200)
 #define WINSIZE    16 // (1-1024) as window size in number of frames
 
-#define TIMEOUTLONG TIMEOUT * PROPDELAY
+#define TIMEOUTLONG TIMEOUT * (10 + PROPDELAY)
 #define TIMEOUTUSEC TIMEOUT * 1000
 
 
