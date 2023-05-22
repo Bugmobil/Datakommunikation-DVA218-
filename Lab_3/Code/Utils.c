@@ -204,14 +204,20 @@ void warningMSG(char *func, char *problem)
 }
 void successMSG(char *msg)
 {
-    printf("Function %s executed", msg);
-    printf(GRN " successfully\n" RESET);
+    printf("%s: ", msg);
+    printf(GRN " Check\n" RESET);
 }
 void successPKT(int seqNum)
 {
     printf(GRN "Packet successfully sent! " RESET);
     printf("Sequence number: ");
     printf(MAG " %d\n" RESET, seqNum);
+}
+
+void failMSG(char *msg)
+{
+    printf("%s: ", msg);
+    printf(RED "FAILED\n" RESET, msg);
 }
 void successACK(int seqNum)
 {

@@ -155,6 +155,7 @@ void errorMSG(char *msg);
 void warningMSG(char *func, char *problem);
 void successMSG(char *msg);
 void successPKT(int seqNum);
+void failMSG(char *msg);
 void successACK(int seqNum);
 void corruptedMSG(int seqNum);
 

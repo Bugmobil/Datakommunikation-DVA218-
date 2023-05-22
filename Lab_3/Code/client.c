@@ -34,7 +34,7 @@ void dataHandling(void *args)
         if (pkt.dataSize != 0)
         {
             targs->seqNum = pkt.seqNum;
-            if (!checkCorrupt((uint8_t *)pkt.data, pkt.dataSize, pkt.checksum))
+            if (!checkCorrupt(pkt))
             {
                 if (!checkSeqNum(pkt.seqNum, expectedSeqNum))
                 {
@@ -57,15 +57,20 @@ void dataHandling(void *args)
                         printf("Expected sequence number incremented to: %d\n", expectedSeqNum);
                     }
                 }
-                else
+                else if (pkt.seqNum > expectedSeqNum)
                 {
                     outOfOrder_buffer[pkt.seqNum] = pkt;
                     ACKpkt(targs, true);
                     printf(BLU "Packet out of order. Sending ACK to server.\n" RESET);
                     slidingWindow();
                 }
-               // printf("ACK's sent: %d, NACK's sent: %d, Next sequence number: %d\n", ACKsent,NACKsent,expectedSeqNum);
-                
+                else
+                {
+                    printf(RED "Duplicate packet received. Sending ACK to server.\n" RESET);
+                    ACKpkt(targs, true);
+                    slidingWindow();
+                }
+                // printf("ACK's sent: %d, NACK's sent: %d, Next sequence number: %d\n", ACKsent,NACKsent,expectedSeqNum);
             }
             else
             {
@@ -77,6 +82,7 @@ void dataHandling(void *args)
         else if (pkt.FIN == 1)
         {
             slidingWindow();
+            printf("FIN received. Closing connection.\n");
             runThreads = false;
         }
     }
@@ -105,6 +111,11 @@ int main(int argc, char *argv[])
     struct thread_args sendTargs;
     socklen_t serverAddrLen;
     expectedSeqNum = 0;
+
+    for (int i = 0; i < WINSIZE; i++)
+    {
+        InitPacket(&sndpkt[i]);
+    }
 
     srand(time(NULL));
     /* Check arguments */
