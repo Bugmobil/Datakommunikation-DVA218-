@@ -11,7 +11,6 @@
 #include <pthread.h>
 #include "udp_transport.h"
 
-
 /* =============== End of Structs =============== */
 
 /* =============== Globalz =============== */
@@ -37,7 +36,7 @@ Packet make_pkt(int seqNum, char *data, int checksum)
     strncpy(pkt.data, data, sizeof(pkt.data));
     pkt.checksum = checksum;
 
-    //printPacket(pkt);
+    // printPacket(pkt);
     return pkt;
 }
 
@@ -51,9 +50,9 @@ Packet make_ACKpkt(int seqNum, bool ACK, bool NACK)
     ACKpkt.ACK = ACK;
     ACKpkt.NACK = NACK;
     strcpy(ACKpkt.data, "ACK packet");
-    ACKpkt.checksum = checksum((uint8_t *)&ACKpkt, sizeof(ACKpkt));
+    ACKpkt.checksum = checksum(&ACKpkt);
 
-    //printPacket(ACKpkt);
+    // printPacket(ACKpkt);
     return ACKpkt;
 }
 // Sends the packet to the destination address using the UDP socket
@@ -72,7 +71,7 @@ void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
     }
     else
     {
-        //successMSG("udt_send()");
+        // successMSG("udt_send()");
     }
 }
 
@@ -82,34 +81,36 @@ void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr)
     char buffer[PACKET_SIZE];
     socklen_t addr_len = sizeof(*src_addr);
 
-    printf(CYN "Ready to receive\n" RESET);
+    // printf(CYN "Ready to receive\n" RESET);
 
     // Receive data using recvfrom() and store it in the buffer
     int bytes = recvfrom(sockfd, buffer, PACKET_SIZE, 0, src_addr, &addr_len);
     if (bytes < 0)
     {
-        errorLocation(__FUNCTION__,__FILE__, __LINE__);
+        errorLocation(__FUNCTION__, __FILE__, __LINE__);
         errorMSG("rdt_rcv --> recvfrom()");
     }
     else
     {
         Deserialize(buffer, pkt); // Deserialize the buffer into a packet
-        //successMSG("Deserialize ()");
+        // successMSG("Deserialize ()");
     }
 }
 
-void printLoadingBar() {
-    printf("Loading");  // Start of the loading bar
+void printLoadingBar()
+{
+    printf("Loading"); // Start of the loading bar
 
-    for (int i = 0; i < 10; i++) {
-        int sleepTime = GiveRandomNumber(500000,1000000);  // Generate a random number between 1 and 2
-        usleep(sleepTime);  // Sleep for the random number of seconds
+    for (int i = 0; i < 10; i++)
+    {
+        int sleepTime = GiveRandomNumber(500000, 1000000); // Generate a random number between 1 and 2
+        usleep(sleepTime);                                 // Sleep for the random number of seconds
 
-        printf("█");  // Print a segment of the loading bar
-        fflush(stdout);  // Flush the output buffer to ensure the segment is printed immediately
+        printf("█");    // Print a segment of the loading bar
+        fflush(stdout); // Flush the output buffer to ensure the segment is printed immediately
     }
 
-    printf("\n");  // End of the loading bar
+    printf("\n"); // End of the loading bar
 }
 
 // Extracts the ACK packet and delivers the data
@@ -139,16 +140,28 @@ void ACKpkt(struct thread_args *args, bool isACK)
 Uses the Fletcher's checksum algorithm to calculate
 the checksum of the data
 */
-uint32_t checksum(const uint8_t *data, size_t len)
+uint32_t checksum(Packet *pkt)
 {
     uint32_t hash = 5381;
 
-    for (size_t i = 0; i < len; i++)
+    // Include the boolean fields in the checksum
+    hash = ((hash << 5) + hash) + pkt->ACK;
+    hash = ((hash << 5) + hash) + pkt->SYN;
+    hash = ((hash << 5) + hash) + pkt->FIN;
+    hash = ((hash << 5) + hash) + pkt->NACK;
+
+    // Include the data in the checksum
+    for (int i = 0; i < pkt->dataSize; i++)
     {
-        hash = ((hash << 5) + hash) + data[i]; // hash * 33 + data[i]
+        hash = ((hash << 5) + hash) + pkt->data[i];
     }
 
-    //successMSG("checksum()");
+    // Include the other fields in the checksum
+    hash = ((hash << 5) + hash) + pkt->dataSize;
+    hash = ((hash << 5) + hash) + pkt->seqNum;
+    hash = ((hash << 5) + hash) + pkt->timestamp;
+    hash = ((hash << 5) + hash) + pkt->status;
+
     return hash;
 }
 
@@ -157,10 +170,21 @@ Checks if the packet is corrupted by comparing the received checksum
 with the calculated checksum of the received data.
 Returns 0 if the packet is not corrupted.
 */
-int checkCorrupt(const uint8_t *data, size_t len, uint32_t rcvChecksum)
+int checkCorrupt(Packet pkt)
 {
-    //successMSG("checkCorrupt()");
-    return rcvChecksum - checksum(data, len);
+    int diff = 0;
+    diff = pkt.checksum - checksum(&pkt);
+    if (diff == 0)
+    {
+        successMSG("Correct packet received");
+        return 0;
+    }
+    else
+    {
+        failMSG("Corrupted packet received");
+        printf("Expected checksum: %d, Received checksum: %d\n", pkt.checksum, checksum(&pkt));
+        return -1;
+    }
 }
 
 /*
@@ -169,8 +193,17 @@ Returns 0 if the received sequence number is the expected sequence number
 */
 int checkSeqNum(int rcvSeqNum, int expSeqNum)
 {
-   //successMSG("checkSeqNum()");
-    return rcvSeqNum - expSeqNum;
+    if (rcvSeqNum == expSeqNum)
+    {
+        successMSG("Correct sequence number received");
+        return 0;
+    }
+    else
+    {
+        failMSG("Incorrect sequence number received");
+        printf("Expected sequence number: %d, Received sequence number: %d\n", expSeqNum, rcvSeqNum);
+        return -1;
+    }
 }
 
 /*
@@ -202,7 +235,7 @@ void *timeout(void *arg)
     while (runThreads)
     {
         // Sleep for the timeout duration
-        usleep(TIMEOUT);
+        usleep(TIMEOUTUSEC * 10);
         // Check if the packet has been acknowledged
         if (!sndpkt[targs->seqNum].ACK && !sndpkt[targs->seqNum].NACK)
         {
@@ -217,14 +250,13 @@ void *timeout(void *arg)
     return NULL;
 }
 
-
 void slidingWindow()
 {
 
     printf(YEL "\n\nSliding window " RESET);
     printf("(Size: %d)\n", WINSIZE);
     printf("[ ");
-    //sequence numbers
+    // sequence numbers
     for (int i = 0; i < WINSIZE; i++)
     {
         printf("%d ", sndpkt[i].seqNum);

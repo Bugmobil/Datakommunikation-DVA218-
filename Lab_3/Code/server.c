@@ -17,7 +17,6 @@ struct thread_args sendTargs;
 int ACK_buffer[NUMFRAMES];
 int framesSent = 0;
 
-
 void GenerateMGS(char *sendMSG, int maxLen)
 {
     size_t i;
@@ -44,16 +43,17 @@ void sendData(void *args)
         GenerateMGS(sendMSG, FRAMESIZE);
         if (framesSent == NUMFRAMES)
         {
-            if (nextSeqNum < base + NUMFRAMES)
+            if (nextSeqNum < base + WINSIZE)
             {
                 pthread_mutex_lock(&mutex); // Lock the mutex
                 // Create packet, send it, and store it in the buffer
-                sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG, checksum((u_int8_t *)sendMSG, strlen(sendMSG)));
+                sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG, checksum(&sndpkt[nextSeqNum]));
                 udt_send(&sndpkt[nextSeqNum], targs->sockfd, &(targs->addr));
                 targs->seqNum = nextSeqNum;
                 start_timer(targs, nextSeqNum);
-                nextSeqNum = (nextSeqNum + 1) % NUMFRAMES;
-                 
+                printPacket(sndpkt[nextSeqNum]);
+                nextSeqNum = (nextSeqNum + 1) % WINSIZE;
+
                 slidingWindow();
                 fflush(stdout);
 
@@ -72,7 +72,7 @@ void sendData(void *args)
 // This function is for ACKs and NACKs from the receiver
 void rcvData(void *args)
 {
-    //successMSG("rcvData");
+    // successMSG("rcvData");
     struct thread_args *targs = (struct thread_args *)args;
     while (runThreads)
     {
@@ -82,14 +82,16 @@ void rcvData(void *args)
         Packet rcvpkt;
         InitPacket(&rcvpkt);
         rdt_rcv(&rcvpkt, targs->sockfd, &(targs->addr));
+
         pthread_mutex_lock(&mutex); // Lock the mutex
-       // printPacket(rcvpkt);
-        if (rcvpkt.ACK == 1) // If the packet is an ACK
+
+        printPacket(rcvpkt);
+        if (rcvpkt.ACK == 1 && !checkCorrupt(rcvpkt)) // If the packet is an ACK
         {
             if (base == rcvpkt.seqNum) // If the ACK is for the packet at the base of the buffer
             {
-                InitPacket(&sndpkt[base]); // Clear the packet from the buffer
-                stop_timer(rcvpkt.seqNum);  // Stop the timer for the packet
+                InitPacket(&sndpkt[base]);     // Clear the packet from the buffer
+                stop_timer(rcvpkt.seqNum);     // Stop the timer for the packet
                 base = (base + 1) % NUMFRAMES; // Move the base forward
                 framesSent++;
                 successACK(rcvpkt.seqNum);
@@ -122,7 +124,7 @@ void rcvData(void *args)
                 fflush(stdout);
             }
         }
-        else if (rcvpkt.NACK == 1)
+        else // if Packet isn't an ACK its a NACK or corrupted
         {
             udt_send(&sndpkt[rcvpkt.seqNum], targs->sockfd, &(targs->addr));
             restart_timer(targs, rcvpkt.seqNum); // Restart the timer for the packet
@@ -139,10 +141,10 @@ int main()
     base = 0;
     nextSeqNum = 0;
     runThreads = true;
-    //printf("One small step for dev...\n");
+    // printf("One small step for dev...\n");
     srand(time(NULL));
-    
-    for (int i = 0; i < NUMFRAMES; i++)
+
+    for (int i = 0; i < WINSIZE; i++)
     {
         InitPacket(&sndpkt[i]);
     }
@@ -155,7 +157,7 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    //printf("A plethora of bugs to fix!\n");
+    // printf("A plethora of bugs to fix!\n");
 
     // Set up server address
     sendTargs.addr.sin_family = AF_INET;

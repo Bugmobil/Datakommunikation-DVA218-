@@ -55,8 +55,8 @@ void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr);
 void ACKpkt(struct thread_args *args, bool isACK);
 
 // Functions for packet validation
-uint32_t checksum(const uint8_t *data, size_t len);
-int checkCorrupt(const uint8_t *data, size_t len, uint32_t rcvChecksum);
+uint32_t checksum(Packet *pkt);
+int checkCorrupt(Packet pkt);
 int checkSeqNum(int rcvSeqNum, int expSeqNum);
 
 // Functions for timers
