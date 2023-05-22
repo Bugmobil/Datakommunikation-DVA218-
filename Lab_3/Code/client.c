@@ -139,7 +139,6 @@ int main(int argc, char *argv[])
 
     initSocketAddress(&(sendTargs.addr), hostName, PORT);
     serverAddrLen = sizeof(sendTargs.addr);
-    ClientSetup(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), &serverAddrLen);
 
     int flags = fcntl(sendTargs.sockfd, F_GETFL, 0);
     if (flags & O_NONBLOCK) {
@@ -155,6 +154,8 @@ int main(int argc, char *argv[])
     printf("┊PORT: %d\n", ntohs(sendTargs.addr.sin_port));
     printf("┊SOCKET: %d\n", sendTargs.sockfd);
     printf("└ ・・・・・・・・・・・・・・ ┘\n");
+
+    ClientSetup(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), &serverAddrLen);
 
     expectedSeqNum = 1;
     dataHandling((void *)&sendTargs);

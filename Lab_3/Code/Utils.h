@@ -96,7 +96,7 @@ void CorruptPacketPercentage(char* packet, int errorRate);
 
 // Prints the packet's information
 void printPacket(Packet pkt);
-void errorLocation(char *function, char *file, int line);
+void errorLocation(const char *function, const char *file, int line);
 void errorMSG(char *msg);
 void warningMSG(char *func, char *problem);
 void successMSG(char *msg);

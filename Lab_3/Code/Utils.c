@@ -160,7 +160,7 @@ void printPacket (Packet pkt)
 }
 
 /* Error Handling */
-void errorLocation(char *function, char *file, int line)
+void errorLocation(const char *function, const char *file, int line)
 {
     printf(MAG "Function: %s\nFile: %s, Line: %d\n" RESET, function, file, line);
     printf(RESET"");

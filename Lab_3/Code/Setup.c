@@ -26,7 +26,7 @@ void ClientSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
         if(ReceiveSYNACK(fd, addr, addrLen)) break;
     }
 
-    printf("SYNACK Received\n");
+    printf("SYNACK Received. Sending ACK...\n");
     SendACK(fd, addr, *addrLen);
     StartTimer(&startTime);
 

@@ -183,7 +183,7 @@ void *timeout(void *arg)
         // Check if the packet has been acknowledged
         if (!sndpkt[targs->seqNum].ACK && !sndpkt[targs->seqNum].NACK)
         {
-            printf(RED "Timeout for packet %d\n", RESET, targs->seqNum);
+            printf(RED "Timeout for packet %d\n" RESET, targs->seqNum);
             printf("Retransmitting packet\n");
             // If not, retransmit the packet
             udt_send(&sndpkt[targs->seqNum], targs->sockfd, &(targs->addr));
