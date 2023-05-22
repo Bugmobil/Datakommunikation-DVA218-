@@ -19,17 +19,30 @@ pthread_t sendThread, rcvThread, timerThread;
 struct thread_args sendTargs;
 int ACK_buffer[MAXSEQ];
 
+void GenerateMGS(char* sendMSG, int maxLen)
+{
+    srand(time(NULL));
+    size_t i;
+    int length = GiveRandomNumber(5, maxLen - 1);
+    for (i = 0; i < length; i++)
+    {
+        sendMSG[i] = GiveRandomNumber(65, 90);
+    }
+    sendMSG[i + 1] = '\0';
+}
+
 // This function is called by the sender thread to send data to the receiver
 void sendData(void *args)
 {
     struct thread_args *targs = (struct thread_args *)args;
     char sendMSG[messageLength];
-    printf("Enter a message to send to the client: ");
     //pthread_cond_wait(&cond, &mutex); // Wait for the receiver to be ready
     while (runThreads)
     {
-        printf("\n");
-        fgets(sendMSG, messageLength, stdin);
+        //printf("Enter a message to send to the client:\n");
+        //fgets(sendMSG, messageLength, stdin);
+        usleep(10000);
+        GenerateMGS(sendMSG, messageLength);
         sendMSG[strlen(sendMSG) - 1] = '\0';
         if(strncmp(sendMSG,"quit\n",messageLength) != 0)
         {
@@ -65,8 +78,8 @@ void rcvData(void *args)
 
         Packet rcvpkt;
         rdt_rcv(&rcvpkt, targs->sockfd,&(targs->addr));
-
         pthread_mutex_lock(&mutex); // Lock the mutex
+        printPacket(rcvpkt);
         if (rcvpkt.ACK == 1) // If the packet is an ACK
         {
             if (base == rcvpkt.seqNum) // If the ACK is for the packet at the base of the buffer
@@ -153,9 +166,8 @@ int main()
     printf("└ ・・・・・・・・・・・・・・ ┘\n");*/
 
     pthread_mutex_init(&mutex, NULL);
-    sendData(&sendTargs);
-    
-    pthread_create(&rcvThread, NULL, (void *)rcvData, (void *)&sendTargs);
+    pthread_create(&rcvThread, NULL, (void *)sendData, (void *)&sendTargs);
+    rcvData(&sendTargs);
 
     pthread_create(&sendThread, NULL, (void *)timeout, (void *)&sendTargs);
     pthread_join(sendThread, NULL);
