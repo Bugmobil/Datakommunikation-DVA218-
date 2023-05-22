@@ -36,8 +36,6 @@
 #define messageLength 256
 #define PACKET_SIZE FRAMESIZE + sizeof(uint16_t) + 4 * sizeof(uint32_t)
 //#define TIMEOUT 1
-#define TIMEOUTLONG TIMEOUT * 10
-#define TIMEOUTUSEC TIMEOUT * 1000
 //#define MAXSEQ 30
 //#define N MAXSEQ/2 // window size
 
@@ -72,6 +70,9 @@ Usage: server <options>
 #define PROPDELAY  10 // (1-1000) as one-way propagation delay in ms
 #define TIMEOUT    200 // (1-5000) as timeout in ms (default 200)
 #define WINSIZE    16 // (1-1024) as window size in number of frames
+
+#define TIMEOUTLONG TIMEOUT * PROPDELAY
+#define TIMEOUTUSEC TIMEOUT * 1000
 
 
 /*======== END OF START VALUES ========*/
