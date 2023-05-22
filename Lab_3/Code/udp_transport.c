@@ -49,6 +49,7 @@ Packet make_ACKpkt(int seqNum, bool ACK, bool NACK)
     ACKpkt.seqNum = seqNum;
     ACKpkt.ACK = ACK;
     ACKpkt.NACK = NACK;
+    strcpy(ACKpkt.data, "ACK paket");
     ACKpkt.checksum = checksum((uint8_t *)&ACKpkt, sizeof(ACKpkt));
 
     printPacket(ACKpkt);
@@ -79,6 +80,8 @@ void rdt_rcv(Packet *pkt, int sockfd, struct sockaddr_in *src_addr)
 {
     char buffer[PACKET_SIZE];
     socklen_t addr_len = sizeof(*src_addr);
+
+    printf(CYN "Ready to receive\n" RESET);
 
     // Receive data using recvfrom() and store it in the buffer
     int bytes = recvfrom(sockfd, buffer, PACKET_SIZE, 0, src_addr, &addr_len);
