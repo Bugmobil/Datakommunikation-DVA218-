@@ -37,7 +37,7 @@ Packet make_pkt(int seqNum, char *data, int checksum)
     strncpy(pkt.data, data, sizeof(pkt.data));
     pkt.checksum = checksum;
 
-    printPacket(pkt);
+    //printPacket(pkt);
     return pkt;
 }
 
@@ -50,10 +50,10 @@ Packet make_ACKpkt(int seqNum, bool ACK, bool NACK)
     ACKpkt.seqNum = seqNum;
     ACKpkt.ACK = ACK;
     ACKpkt.NACK = NACK;
-    strcpy(ACKpkt.data, "ACK paket");
+    strcpy(ACKpkt.data, "ACK packet");
     ACKpkt.checksum = checksum((uint8_t *)&ACKpkt, sizeof(ACKpkt));
 
-    printPacket(ACKpkt);
+    //printPacket(ACKpkt);
     return ACKpkt;
 }
 // Sends the packet to the destination address using the UDP socket
