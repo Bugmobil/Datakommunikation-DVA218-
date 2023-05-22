@@ -44,6 +44,8 @@ Packet make_ACKpkt(int seqNum, bool ACK, bool NACK)
 {
     Packet ACKpkt;
     InitPacket(&ACKpkt);
+    ACKpkt.dataSize = 0;
+    ACKpkt.data[0] = '\0';
     ACKpkt.seqNum = seqNum;
     ACKpkt.ACK = ACK;
     ACKpkt.NACK = NACK;
@@ -138,6 +140,7 @@ Returns 0 if the packet is not corrupted.
 */
 int checkCorrupt(const uint8_t *data, size_t len, uint32_t rcvChecksum)
 {
+    successMSG("checkCorrupt()");
     return rcvChecksum - checksum(data, len);
 }
 
@@ -147,6 +150,7 @@ Returns 0 if the received sequence number is the expected sequence number
 */
 int checkSeqNum(int rcvSeqNum, int expSeqNum)
 {
+    successMSG("checkSeqNum()");
     return rcvSeqNum - expSeqNum;
 }
 
@@ -179,7 +183,7 @@ void *timeout(void *arg)
     while (runThreads)
     {
         // Sleep for the timeout duration
-        sleep(TIMEOUT);
+        sleep(TIMEOUT+5);
         // Check if the packet has been acknowledged
         if (!sndpkt[targs->seqNum].ACK && !sndpkt[targs->seqNum].NACK)
         {

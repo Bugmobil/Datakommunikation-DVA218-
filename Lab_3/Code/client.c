@@ -38,12 +38,12 @@ void dataHandling(void *args)
                 if(!checkSeqNum(pkt.seqNum, expectedSeqNum))
                 {
                     ACKpkt(targs, true);
-                    printf(GRN "Expected sequence number received. Sending ACK to server.\n" RESET);
-                    
-                    extractAndDeliver(pkt);
-                    printf(GRN "Packet %d extracted and sent to application layer.\n" RESET, pkt.seqNum);
                     
                     expectedSeqNum = (expectedSeqNum + 1) % MAXSEQ;
+                    extractAndDeliver(pkt);
+                    
+                    printf(GRN "Expected sequence number received. Sending ACK to server.\n" RESET);
+                    printf(GRN "Packet %d extracted and sent to application layer.\n" RESET, pkt.seqNum);
                     printf("Expected sequence number incremented to: %d\n", expectedSeqNum);
                 
                     while (outOfOrder_buffer[expectedSeqNum].seqNum == expectedSeqNum)
