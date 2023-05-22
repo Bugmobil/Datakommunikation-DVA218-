@@ -217,7 +217,7 @@ void successPKT(int seqNum)
 void failMSG(char *msg)
 {
     printf("%s: ", msg);
-    printf(RED "FAILED\n" RESET, msg);
+    printf(RED "FAILED\n" RESET);
 }
 void successACK(int seqNum)
 {
