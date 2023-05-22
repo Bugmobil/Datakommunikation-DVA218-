@@ -27,14 +27,16 @@
 #include <netdb.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <semaphore.h>
+#include <pthread.h>
 
 #define PORT 5556
 #define SERVER_IP "127.0.0.1"
 #define hostNameLength 50
 #define messageLength 256
 #define PACKET_SIZE messageLength + sizeof(uint16_t) + 4 * sizeof(uint32_t)
-#define TIMEOUT 1
-#define TIMEOUTLONG TIMEOUT * 10
+#define TIMEOUT 2
+#define TIMEOUTLONG TIMEOUT * 20
 #define TIMEOUTUSEC TIMEOUT * 1000
 #define N 5 // window size
 #define MAXSEQ 25600
@@ -55,6 +57,18 @@ typedef struct
     time_t timestamp;
     uint32_t checksum;
 } Packet;
+
+typedef struct
+{
+    int fd;
+    int size;
+    int flags;
+    int returnValue;
+    char* buffer;
+    struct sockaddr *destAddr;
+    socklen_t addrLen;
+} ThreadSend;
+
 
 /* Terminal Colors */
 
@@ -86,13 +100,17 @@ void StartTimer(struct timeval* startTime);
 //Returns 1 if timeout has surpassed starTime. Otherwise returns 0
 int CheckTime(struct timeval startTime, int timeout);
 
-//Return random integer
+//Returns random integer
 int GiveRandomNumber(const int from, const int to);
-
 //Randomly corrupts packet
 void CorruptPacket(char* packet);
 //Randomly corrupts packet based on errorRate. Must be between 0 and 100
 void CorruptPacketPercentage(char* packet, int errorRate);
+
+//Sends packet with delay to simulate propagation delay
+void ThreadSendDelay(ThreadSend* packet);
+//Simulates sending packet with delay, corruption and packet loss
+int SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen);
 
 // Prints the packet's information
 void printPacket(Packet pkt);

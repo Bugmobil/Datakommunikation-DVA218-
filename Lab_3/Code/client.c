@@ -117,6 +117,7 @@ int main(int argc, char *argv[])
     struct thread_args sendTargs;
     socklen_t serverAddrLen;
 
+    srand(time(NULL));
     /* Check arguments */
     if(argv[1] == NULL)
     {

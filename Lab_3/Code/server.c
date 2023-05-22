@@ -6,8 +6,6 @@
  ============================================================================
  */
 
-#include <semaphore.h>
-#include <pthread.h>
 #include "udp_transport.h"
 #include "Utils.h"
 #include "Setup.h"
@@ -21,7 +19,6 @@ int ACK_buffer[MAXSEQ];
 
 void GenerateMGS(char* sendMSG, int maxLen)
 {
-    srand(time(NULL));
     size_t i;
     int length = GiveRandomNumber(5, maxLen - 1);
     for (i = 0; i < length; i++)
@@ -128,6 +125,7 @@ int main()
     base = 1;
     nextSeqNum = 1;
 
+    srand(time(NULL));
     printf("One small step for dev...\n");
 
     // Create a UDP socket
@@ -158,6 +156,7 @@ int main()
     printf("Bind complete\n");
 
     ServerSetup(sendTargs.sockfd, (struct sockaddr *)&sendTargs.addr, &rcvAddrLen);
+    sleep(2);
 
 /*
     printf("Connecting to server...\n");
