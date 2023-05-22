@@ -27,7 +27,10 @@ void dataHandling(void *args)
         Packet pkt;
         InitPacket(&pkt);
         rdt_rcv(&pkt, targs->sockfd, &(targs->addr));
-        pkt.dataSize = strlen(pkt.data);
+        pkt.data[pkt.dataSize] = '\0';
+        printf("Packet received:\n");
+        printPacket(pkt);
+        pkt.dataSize = strlen(pkt.data); //Adds NULL terminator at the end of the message
         if (pkt.dataSize != 0)
         {
             if (!checkCorrupt((uint8_t*)pkt.data, pkt.dataSize, pkt.checksum))
