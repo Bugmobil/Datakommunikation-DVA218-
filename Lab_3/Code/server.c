@@ -39,6 +39,7 @@ void sendData(void *args)
     sleep(1);
     while (runThreads)
     {
+        usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
         GenerateMGS(sendMSG, FRAMESIZE);
         if (ackCount != NUMFRAMES && framesSent < NUMFRAMES)
         {
@@ -47,7 +48,7 @@ void sendData(void *args)
                 pthread_mutex_lock(&mutex); // Lock the mutex
                 // Create packet, send it, and store it in the buffer
                 sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG);
-                usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
+               
                 udt_send(&sndpkt[nextSeqNum], targs->sockfd, &(targs->addr));
                 targs->seqNum = nextSeqNum;
                 start_timer(targs, nextSeqNum);
@@ -78,6 +79,7 @@ void rcvData(void *args)
     struct thread_args *targs = (struct thread_args *)args;
     while (runThreads)
     {
+        usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
         Packet rcvpkt;
         InitPacket(&rcvpkt);
         if (ackCount >= NUMFRAMES)
@@ -86,7 +88,7 @@ void rcvData(void *args)
             fflush(stdout);
 
             Packet pkt = make_pkt(0, "FIN");
-            usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
+            
             udt_send(&pkt, targs->sockfd, &(targs->addr));
             
             end = time(NULL);

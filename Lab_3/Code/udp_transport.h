@@ -32,10 +32,10 @@ extern int base, nextSeqNum, expectedSeqNum;
 extern bool runThreads;
 
 // Arrays
-extern Packet sndpkt[NUMFRAMES];
-extern Packet outOfOrder_buffer[NUMFRAMES];
-extern int ACK_buffer[NUMFRAMES];
-extern pthread_t timerThreads[NUMFRAMES];
+extern Packet sndpkt[WINSIZE];
+extern Packet outOfOrder_buffer[WINSIZE];
+extern int ACK_buffer[WINSIZE];
+extern pthread_t timerThreads[WINSIZE];
 
 /* =============== End of Globalz =============== */
 

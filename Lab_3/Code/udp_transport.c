@@ -19,10 +19,10 @@ int base = 0, nextSeqNum = 0, expectedSeqNum = 0;
 bool runThreads = true;
 
 // Arrays
-Packet sndpkt[NUMFRAMES] = {0};
-Packet outOfOrder_buffer[NUMFRAMES] = {0};
-int ACK_buffer[NUMFRAMES] = {0};
-pthread_t timerThreads[NUMFRAMES] = {0};
+Packet sndpkt[WINSIZE] = {0};
+Packet outOfOrder_buffer[WINSIZE] = {0};
+int ACK_buffer[WINSIZE] = {0};
+pthread_t timerThreads[WINSIZE] = {0};
 
 /* =============== End of Globalz =============== */
 
@@ -243,7 +243,7 @@ void slidingWindow()
     printf("(Size: %d)\n", WINSIZE);
     printf("[ ");
     // sequence numbers
-    for (int i = 0; i < NUMFRAMES; i++)
+    for (int i = 0; i < WINSIZE; i++)
     {
         if (i < base)
             printf("%d ", sndpkt[i].seqNum);
@@ -252,7 +252,7 @@ void slidingWindow()
         else if (sndpkt[i].seqNum != -1) // assuming -1 indicates an "empty slot"
             printf("%d ", sndpkt[i].seqNum);
 
-        if (i < NUMFRAMES - 1)
+        if (i < WINSIZE - 1)
             printf("| ");
     }
     printf("]\n\n");

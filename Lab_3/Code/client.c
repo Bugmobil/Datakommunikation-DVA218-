@@ -24,6 +24,7 @@ void dataHandling(void *args)
 
     while (runThreads)
     {
+        usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
         Packet pkt;
         InitPacket(&pkt);
         rdt_rcv(&pkt, targs->sockfd, &(targs->addr));
@@ -38,6 +39,12 @@ void dataHandling(void *args)
             if (!checkCorrupt(pkt))
             {
                 targs->seqNum = pkt.seqNum;
+                if (pkt.FIN == 1)
+                    {
+                        printf(GRN "FIN received. Closing connection.\n" RESET);
+                        runThreads = false;
+                        pthread_exit(NULL);
+                    }
                 if (!checkSeqNum(pkt.seqNum, expectedSeqNum))
                 {
                     if (pkt.FIN == 1)
@@ -46,7 +53,6 @@ void dataHandling(void *args)
                         runThreads = false;
                         pthread_exit(NULL);
                     }
-                    usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
                     ACKpkt(targs, true);
 
                     slidingWindow();
@@ -69,7 +75,6 @@ void dataHandling(void *args)
                 else if (pkt.seqNum > expectedSeqNum)
                 {
                     outOfOrder_buffer[pkt.seqNum] = pkt;
-                    usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
                     ACKpkt(targs, true);
                     printf(BLU "Packet out of order. Sending ACK to server.\n" RESET);
                     slidingWindow();
@@ -77,7 +82,6 @@ void dataHandling(void *args)
                 else
                 {
                     printf(RED "Duplicate packet received. Sending ACK to server.\n" RESET);
-                    usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
                     ACKpkt(targs, true);
 
                     slidingWindow();
@@ -87,7 +91,6 @@ void dataHandling(void *args)
             else
             {
                 printf(RED "Packet is corrupt. Sending NACK to server.\n" RESET);
-                usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
                 ACKpkt(targs, false);
                 slidingWindow();
             }

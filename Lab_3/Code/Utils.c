@@ -214,7 +214,6 @@ void execMSG()
 
 }
 
-
 void printTime()
 {
     time_t rawtime;
@@ -222,10 +221,12 @@ void printTime()
 
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
+
     printf(MAG "\n┌ ・・・・・・・・・・・・・・ ┐\n"RESET);
-    printf("┊ %s", asctime (timeinfo) );
+    printf("┊ %02d:%02d:%02d\n", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
     printf(MAG "└ ・・・・・・・・・・・・・・ ┘\n"RESET);
 }
+
 
 /* Error Handling */
 void errorLocation(const char *function, const char *file, int line)
