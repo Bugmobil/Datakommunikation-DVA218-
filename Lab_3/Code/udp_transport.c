@@ -33,12 +33,12 @@ Packet make_pkt(int seqNum, char *data)
     Packet pkt;
     InitPacket(&pkt);
     pkt.seqNum = seqNum;
-    pkt.dataSize = strlen(pkt.data);
-    strncpy(pkt.data, data, sizeof(pkt.data));
-    
+    pkt.dataSize = strlen(data);
+    strncpy(pkt.data, data, pkt.dataSize);
     pkt.checksum = checksum(&pkt);
 
-    // printPacket(pkt);
+    printf("make_pkt: ");
+    printPacket(pkt);
     return pkt;
 }
 
@@ -201,7 +201,7 @@ Timer functions
 void start_timer(struct thread_args *args, int seqNum)
 {
     //printf("Starting timer for packet %d\n", seqNum);
-    pthread_create(&timerThreads[seqNum], NULL, timeout, (void *)args);
+    pthread_create(&timerThreads[seqNum], NULL, (void *)timeout, (void *)args);
 }
 void stop_timer(int seqNum)
 {
@@ -214,7 +214,7 @@ void restart_timer(struct thread_args *args, int seqNum)
     stop_timer(seqNum);
     start_timer(args, seqNum);
 }
-void *timeout(void *arg)
+void timeout(void *arg)
 {
     struct thread_args *targs = (struct thread_args *)arg;
 
@@ -225,19 +225,14 @@ void *timeout(void *arg)
     {
         // Sleep for the timeout duration
         usleep(miliToMicro(TIMEOUT));
-        // Check if the packet has been acknowledged
-        if (!sndpkt[targs->seqNum].ACK && !sndpkt[targs->seqNum].NACK)
-        {
-            printf(RED "Timeout for packet %d\n" RESET, targs->seqNum);
-            printf("Retransmitting packet\n");
-
-            // If not, retransmit the packet
-            udt_send(&sndpkt[targs->seqNum], targs->sockfd, &(targs->addr));
-            restart_timer(targs, targs->seqNum);
-        }
+        printf(RED "Timeout for packet %d\n" RESET, targs->seqNum);
+        printf("Retransmitting packet\n");
+        //stop_timer(targs->seqNum);
+        // If not, retransmit the packet
+        usleep(miliToMicro(PROPDELAY));
+        udt_send(&sndpkt[targs->seqNum], targs->sockfd, &(targs->addr));
     }
 
-    return NULL;
 }
 
 void slidingWindow()
@@ -252,7 +247,7 @@ void slidingWindow()
             printf("%d ", sndpkt[i].seqNum);
         else if (i < base + WINSIZE)
             printf(BLU "%d" RESET, sndpkt[i].seqNum);
-        else
+        else if (sndpkt[i].seqNum != -1) // assuming -1 indicates an "empty slot"
             printf("%d ", sndpkt[i].seqNum);
 
         if (i < NUMFRAMES - 1)
@@ -260,3 +255,4 @@ void slidingWindow()
     }
     printf("]\n\n");
 }
+

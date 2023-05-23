@@ -28,6 +28,7 @@ void InitPacket(Packet *packet)
     //packet->ID = 0;
     packet->checksum = 0;
 }
+
 void Serialize(char *serializedPacket, Packet packet)
 {
     //printf("Entering Serialize\n");
@@ -54,6 +55,7 @@ void Serialize(char *serializedPacket, Packet packet)
 
     //printf("Serialize Complete\n");
 }
+
 void Deserialize(char *serializedPacket, Packet *packet)
 {
     uint16_t flags;

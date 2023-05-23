@@ -64,7 +64,7 @@ void printLoadingBar();
 void start_timer(struct thread_args *args, int seqNum);
 void restart_timer(struct thread_args *args, int seqNum);
 void stop_timer(int seqNum);
-void *timeout(void *arg);
+void timeout(void *arg);
 
 
 /* =============== End of Functions =============== */

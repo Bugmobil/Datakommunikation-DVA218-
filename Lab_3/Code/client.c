@@ -27,9 +27,11 @@ void dataHandling(void *args)
         Packet pkt;
         InitPacket(&pkt);
         rdt_rcv(&pkt, targs->sockfd, &(targs->addr));
+        sndpkt[pkt.seqNum] = pkt;
         pkt.data[pkt.dataSize] = '\0';
         printf("Packet received:\n");
         printPacket(pkt);
+        printTime();
         pkt.dataSize = strlen(pkt.data); // Adds NULL terminator at the end of the message
         if (pkt.FIN == 1)
         {
@@ -90,7 +92,6 @@ void dataHandling(void *args)
                 slidingWindow();
             }
         }
-        sleep(RTT);
     }
 }
 

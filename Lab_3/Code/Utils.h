@@ -69,7 +69,7 @@ Usage: server <options>
 #define NUMFRAMES  30 // (1-1000) as number of frames
 #define PROPDELAY  10 // (1-1000) as one-way propagation delay in ms
 #define RTT        PROPDELAY/3 // (1-5000) as round trip time in ms
-#define TIMEOUT    PROPDELAY*3 // (1-5000) as timeout in ms (default 200)
+#define TIMEOUT    PROPDELAY*10 // (1-5000) as timeout in ms (default 200)
 #define WINSIZE    16 // (1-1024) as window size in number of frames
 
 #define TIMEOUTLONG TIMEOUT * (10 + PROPDELAY)
