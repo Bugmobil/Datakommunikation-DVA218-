@@ -44,9 +44,9 @@ void dataHandling(void *args)
                 targs->seqNum = pkt.seqNum;
                 if (!checkSeqNum(pkt.seqNum, expectedSeqNum))
                 {
+                    usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
                     ACKpkt(targs, true);
 
-                    usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
                     slidingWindow();
                     expectedSeqNum = (expectedSeqNum + 1) % WINSIZE;
                     extractAndDeliver(pkt);
@@ -67,16 +67,16 @@ void dataHandling(void *args)
                 else if (pkt.seqNum > expectedSeqNum)
                 {
                     outOfOrder_buffer[pkt.seqNum] = pkt;
-                    ACKpkt(targs, true);
                     usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
+                    ACKpkt(targs, true);
                     printf(BLU "Packet out of order. Sending ACK to server.\n" RESET);
                     slidingWindow();
                 }
                 else
                 {
                     printf(RED "Duplicate packet received. Sending ACK to server.\n" RESET);
-                    ACKpkt(targs, true);
                     usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
+                    ACKpkt(targs, true);
 
                     slidingWindow();
                 }
@@ -85,8 +85,8 @@ void dataHandling(void *args)
             else
             {
                 printf(RED "Packet is corrupt. Sending NACK to server.\n" RESET);
-                ACKpkt(targs, false);
                 usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
+                ACKpkt(targs, false);
                 slidingWindow();
             }
         }
