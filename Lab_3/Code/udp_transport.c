@@ -61,9 +61,9 @@ void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
 {
     char buffer[PACKET_SIZE];
     Serialize(buffer, *pkt); // Serialize the packet into a buffer
-
+    sendto(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
     // Use SendFaulty() to send the serialized packet using the UDP socket
-    SendFaulty(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
+   // SendFaulty(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
 }
 
 // Receives the packet from the source address using the UDP socket
@@ -241,19 +241,18 @@ void *timeout(void *arg)
 
 void slidingWindow()
 {
-
     printf(YEL "\n\nSliding window " RESET);
-    printf("(Size: %d)\n", NUMFRAMES);
+    printf("(Size: %d)\n", WINSIZE);
     printf("[ ");
     // sequence numbers
     for (int i = 0; i < NUMFRAMES; i++)
     {
-        if (i == base)
+        if (i < base)
+            printf("%d ", sndpkt[i].seqNum);
+        else if (i < base + WINSIZE)
             printf(BLU "%d" RESET, sndpkt[i].seqNum);
-        else if (i == nextSeqNum)
-            printf(MAG "%d" RESET, sndpkt[i].seqNum);
         else
-        printf("%d ", sndpkt[i].seqNum);
+            printf("%d ", sndpkt[i].seqNum);
 
         if (i < NUMFRAMES - 1)
             printf("| ");

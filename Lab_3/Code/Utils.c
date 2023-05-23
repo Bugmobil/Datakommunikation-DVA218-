@@ -21,6 +21,7 @@ void InitPacket(Packet *packet)
     packet->data[0] = '\0';
     packet->dataSize = 0;
     packet->seqNum = -1;
+    //packet->ID = 0;
     packet->checksum = 0;
 }
 void Serialize(char *serializedPacket, Packet packet)
@@ -29,6 +30,7 @@ void Serialize(char *serializedPacket, Packet packet)
     uint16_t flags = 0;
     uint32_t dataSize = htonl(packet.dataSize);
     uint32_t seqNum = htonl(packet.seqNum);
+    //uint32_t timestamp = htonl(packet.ID);
     uint32_t checksum = htonl(packet.checksum);
 
     if (packet.ACK)
@@ -53,12 +55,14 @@ void Deserialize(char *serializedPacket, Packet *packet)
     uint16_t flags;
     uint32_t dataSize;
     uint32_t seqNum;
+    //uint32_t timestamp;
     uint32_t checksum;
 
     memcpy(&flags, serializedPacket, sizeof(uint16_t));
     memcpy(&dataSize, serializedPacket + FRAMESIZE + sizeof(uint16_t), sizeof(uint32_t));
     memcpy(&seqNum, serializedPacket + FRAMESIZE + sizeof(uint16_t) + sizeof(uint32_t), sizeof(uint32_t));
-    memcpy(&checksum, serializedPacket + FRAMESIZE + sizeof(uint16_t) + 2 * sizeof(uint32_t), sizeof(uint32_t));
+    //memcpy(&timestamp, serializedPacket + FRAMESIZE + sizeof(uint16_t) + 2 * sizeof(uint32_t), sizeof(uint32_t));
+    memcpy(&checksum, serializedPacket + FRAMESIZE + sizeof(uint16_t) + 3 * sizeof(uint32_t), sizeof(uint32_t));
 
     packet->dataSize = ntohl(dataSize);
     memcpy(&packet->data, serializedPacket + sizeof(uint16_t), packet->dataSize);
@@ -69,6 +73,7 @@ void Deserialize(char *serializedPacket, Packet *packet)
     packet->NACK = 1 & (flags >> 3);
 
     packet->seqNum = ntohl(seqNum);
+    //packet->ID = ntohl(timestamp);
     packet->checksum = ntohl(checksum);
 }
 
@@ -82,7 +87,8 @@ void SendFlagPacket(int fd, struct sockaddr *destAddr, socklen_t addrLen, const 
     packet.FIN = flags[2] & 1;
     packet.NACK = flags[3] & 1;
     Serialize(serPkt, packet);
-    SendFaulty(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
+    sendto(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
+    //SendFaulty(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
 }
 int ReceiveFlagPacket(int fd, struct sockaddr *src_addr, socklen_t *addrLen, const char* flags)
 {
@@ -154,7 +160,7 @@ void ThreadSendDelay(ThreadSend* packet)
     free(packet);
     printf("Freed\n");
 }
-void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen)
+/*void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen)
 {
     ThreadSend* packet = malloc(sizeof(ThreadSend));
     if(GiveRandomNumber(1, 100) > ERRORRATE)
@@ -178,7 +184,7 @@ void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *dest
         pthread_create(&sendThread, NULL, (void *)ThreadSendDelay, (ThreadSend*) packet);
         */
     }
-}
+}*/
 
 void printPacket(Packet pkt)
 {

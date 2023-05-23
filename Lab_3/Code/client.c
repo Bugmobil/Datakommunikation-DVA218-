@@ -31,14 +31,12 @@ void dataHandling(void *args)
         printf("Packet received:\n");
         printPacket(pkt);
         pkt.dataSize = strlen(pkt.data); // Adds NULL terminator at the end of the message
-
         if (pkt.FIN == 1)
-        {
-            slidingWindow();
-            printf("FIN received. Closing connection.\n");
-            runThreads = false;
-        }
-        
+                {
+                    printf(GRN "FIN received. Closing connection.\n" RESET);
+                    runThreads = false;
+                    pthread_exit(NULL);
+                }
         else if (pkt.dataSize != 0)
         {
             if (!checkCorrupt(pkt))
