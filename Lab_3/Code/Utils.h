@@ -64,7 +64,7 @@ Usage: server <options>
 */
 
 #define ERRORRATE 0 // (1-99) as error rate in percent (default 0)
-#define FRAMESIZE 20 // (1-3000) as frame size in bytes
+#define FRAMESIZE 256 // (1-3000) as frame size in bytes
 #define LINKSPEED 100 // (1-10000) in kilobits (1000 bits) per seconds
 #define NUMFRAMES  30 // (1-1000) as number of frames
 #define PROPDELAY  10 // (1-1000) as one-way propagation delay in ms
@@ -87,7 +87,7 @@ typedef struct
     bool SYN;
     bool FIN;
     bool NACK;
-    char data[messageLength];
+    char data[FRAMESIZE];
     int dataSize;
     int seqNum;
     uint32_t checksum;
@@ -98,8 +98,8 @@ typedef struct
     int fd;
     int size;
     int flags;
-    char* buffer;
-    struct sockaddr *destAddr;
+    char buffer[PACKET_SIZE];
+    struct sockaddr* destAddr;
     socklen_t addrLen;
 } ThreadSend;
 
