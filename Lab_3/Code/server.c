@@ -53,7 +53,7 @@ void sendData(void *args)
                 start_timer(targs, nextSeqNum);
                 printPacket(sndpkt[nextSeqNum]);
                 nextSeqNum = (nextSeqNum + 1) % WINSIZE;
-
+                framesSent++;
                 slidingWindow();
                 fflush(stdout);
 
