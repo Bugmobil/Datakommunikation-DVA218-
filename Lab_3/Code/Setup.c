@@ -85,6 +85,7 @@ void ServerSetup(int fd, struct sockaddr* addr, socklen_t* addrLen)
     timeout.tv_usec = 0;
     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0)
         perror("Error Setting Timeout");
+    usleep(TIMEOUTLONG * 1000);
     printf(GRN "Setup Complete\n" RESET);
 }
 

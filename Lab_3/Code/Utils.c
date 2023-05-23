@@ -21,7 +21,6 @@ void InitPacket(Packet *packet)
     packet->data[0] = '\0';
     packet->dataSize = 0;
     packet->seqNum = -1;
-    packet->ID = 0;
     packet->checksum = 0;
 }
 void Serialize(char *serializedPacket, Packet packet)
@@ -29,7 +28,6 @@ void Serialize(char *serializedPacket, Packet packet)
     uint16_t flags = 0;
     uint32_t dataSize = htonl(packet.dataSize);
     uint32_t seqNum = htonl(packet.seqNum);
-    uint32_t timestamp = htonl(packet.ID);
     uint32_t checksum = htonl(packet.checksum);
 
     if (packet.ACK)
@@ -45,22 +43,19 @@ void Serialize(char *serializedPacket, Packet packet)
     memcpy(serializedPacket + sizeof(uint16_t), &packet.data, packet.dataSize);
     memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t), &dataSize, sizeof(uint32_t));
     memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t) + sizeof(uint32_t), &seqNum, sizeof(uint32_t));
-    memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t) + 2 * sizeof(uint32_t), &timestamp, sizeof(uint32_t));
-    memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t) + 3 * sizeof(uint32_t), &checksum, sizeof(uint32_t));
+    memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t) + 2 * sizeof(uint32_t), &checksum, sizeof(uint32_t));
 }
 void Deserialize(char *serializedPacket, Packet *packet)
 {
     uint16_t flags;
     uint32_t dataSize;
     uint32_t seqNum;
-    uint32_t timestamp;
     uint32_t checksum;
 
     memcpy(&flags, serializedPacket, sizeof(uint16_t));
     memcpy(&dataSize, serializedPacket + FRAMESIZE + sizeof(uint16_t), sizeof(uint32_t));
     memcpy(&seqNum, serializedPacket + FRAMESIZE + sizeof(uint16_t) + sizeof(uint32_t), sizeof(uint32_t));
-    memcpy(&timestamp, serializedPacket + FRAMESIZE + sizeof(uint16_t) + 2 * sizeof(uint32_t), sizeof(uint32_t));
-    memcpy(&checksum, serializedPacket + FRAMESIZE + sizeof(uint16_t) + 3 * sizeof(uint32_t), sizeof(uint32_t));
+    memcpy(&checksum, serializedPacket + FRAMESIZE + sizeof(uint16_t) + 2 * sizeof(uint32_t), sizeof(uint32_t));
 
     packet->dataSize = ntohl(dataSize);
     memcpy(&packet->data, serializedPacket + sizeof(uint16_t), packet->dataSize);
@@ -71,7 +66,6 @@ void Deserialize(char *serializedPacket, Packet *packet)
     packet->NACK = 1 & (flags >> 3);
 
     packet->seqNum = ntohl(seqNum);
-    packet->ID = ntohl(timestamp);
     packet->checksum = ntohl(checksum);
 }
 
@@ -157,10 +151,11 @@ void ThreadSendDelay(ThreadSend* packet)
 void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen)
 {
     ThreadSend* packet = malloc(sizeof(ThreadSend));
-    if(GiveRandomNumber(1, 3) >= 2)
+    if(GiveRandomNumber(1, 100) > ERRORRATE)
     {
         if(GiveRandomNumber(1, 100) <= ERRORRATE)
         {
+            printf("Corrupting Packet...\n");
             CorruptPacket(buffer);
         }
         packet->fd = fd;

@@ -41,9 +41,9 @@ void dataHandling(void *args)
         
         else if (pkt.dataSize != 0)
         {
-            targs->seqNum = pkt.seqNum;
             if (!checkCorrupt(pkt))
             {
+                targs->seqNum = pkt.seqNum;
                 if (!checkSeqNum(pkt.seqNum, expectedSeqNum))
                 {
                     ACKpkt(targs, true);
