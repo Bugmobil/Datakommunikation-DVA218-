@@ -177,20 +177,23 @@ int SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destA
 
 void printPacket(Packet pkt)
 {
-    printf(BLU "\n\n┌ ・・・・・・・・・・・・・・ ┐\n"RESET);
+    printf(BLU "\n┌ ・・・・・・・・・・・・・・ ┐\n"RESET);
     printf("┊DATA: %s\n", pkt.data);
     printf("┊SEQ NUM: %d\n", pkt.seqNum);
     printf("┊ACK/NACK: %d/%d\n", pkt.ACK, pkt.NACK);
     printf("┊CHECKSUM: %d\n", pkt.checksum);
-    printf(BLU "└ ・・・・・・・・・・・・・・ ┘\n\n"RESET);
+    printf(BLU "└ ・・・・・・・・・・・・・・ ┘\n"RESET);
 }
 
 void execMSG()
 {
-    printf("Simulation started!\n");
-    printf("Number of frames: %d | ", NUMFRAMES);
-    printf("Frame size: %d byte\n", FRAMESIZE);
-    printf("Packet size: %d\n", PACKET_SIZE);
+    printf(MAG "\n┌ ・・・・・・・・・・・・・・ ┐\n"RESET);
+    printf("┊ Simulation started!\n");
+    printf("┊ Number of frames: %d\n", NUMFRAMES);
+    printf("┊ Frame size: %d byte\n", FRAMESIZE);
+    printf("┊ Window size: %d\n", WINSIZE);
+    printf("┊ Error rate: %d%%\n", ERRORRATE);
+    printf(MAG "└ ・・・・・・・・・・・・・・ ┘\n"RESET);
 
 }
 
@@ -237,6 +240,6 @@ void successACK(int seqNum)
 }
 void blueMSG(char *msg)
 {
-    printf(BLU "%s\n" RESET, msg);
+    printf(BLU "%s" RESET, msg);
 }
 /* End of Error Handling */

@@ -16,8 +16,8 @@ pthread_t rcvThread, sendThread, timerThread;
 struct thread_args sendTargs;
 int ACK_buffer[NUMFRAMES];
 int ackCount = 0;
-int framesSent = 0;
 time_t start, end;
+int framesSent = 0;
 
 void GenerateMGS(char *sendMSG, int maxLen)
 {
@@ -36,6 +36,8 @@ void sendData(void *args)
     struct thread_args *targs = (struct thread_args *)args;
     char sendMSG[FRAMESIZE];
     start = time(NULL);
+    execMSG();
+    sleep(1);
     while (runThreads)
     {
 
@@ -52,10 +54,10 @@ void sendData(void *args)
                 targs->seqNum = nextSeqNum;
                 start_timer(targs, nextSeqNum);
 
-                printf("Sending packet:\n");
+                printf("Sending packet: %d", framesSent);
                 printPacket(sndpkt[nextSeqNum]);
 
-                nextSeqNum = (nextSeqNum + 1) % FRAMESIZE;
+                nextSeqNum = (nextSeqNum + 1) % WINSIZE;
                 framesSent++;
                 pthread_mutex_unlock(&mutex); // Unlock the mutex
 
@@ -66,6 +68,8 @@ void sendData(void *args)
         else
         {
             successMSG("All packets sent. Waiting for ACKs.");
+            fflush(stdout);
+            pthread_exit(NULL);
         }
     }
 }
@@ -77,17 +81,20 @@ void rcvData(void *args)
     struct thread_args *targs = (struct thread_args *)args;
     while (runThreads)
     {
-        /*if (base >= N) // Reset base if it has reached the end of the buffer
-            base = 0;*/
-
         Packet rcvpkt;
         InitPacket(&rcvpkt);
         if (ackCount == NUMFRAMES)
         {
-            Packet pkt = make_pkt(-1, "FIN", framesSent);
+            printf("ACKs received: %d\n", ackCount);
+            fflush(stdout);
+
+            Packet pkt = make_pkt(-1, "FIN", framesSent + 1);
             udt_send(&pkt, targs->sockfd, &(targs->addr));
+
+            
             end = time(NULL);
-            printf("Time elapsed: %ld\n", end - start);
+            printf("Network simulation finnished in: %ld ms\n", end - start);
+            fflush(stdout);
             usleep(1000);
             runThreads = false;
         }
@@ -100,10 +107,9 @@ void rcvData(void *args)
         {
             if (base == rcvpkt.seqNum) // If the ACK is for the packet at the base of the buffer
             {
-                InitPacket(&sndpkt[base]);     // Clear the packet from the buffer
+                //InitPacket(&sndpkt[base]);     // Clear the packet from the buffer
                 stop_timer(rcvpkt.seqNum);     // Stop the timer for the packet
-                base = (base + 1) % NUMFRAMES; // Move the base forward
-                framesSent++;
+                base = (base + 1) % WINSIZE; // Move the base forward
                 successACK(rcvpkt.seqNum);
                 slidingWindow();
                 fflush(stdout);
@@ -115,21 +121,19 @@ void rcvData(void *args)
                     stop_timer(base);
                     blueMSG("Removing out of order ACK for packet sequencenumber");
                     printf(" %d\n", base);
-                    base = (base + 1) % NUMFRAMES;
-                    framesSent++;
+                    base = (base + 1) % WINSIZE;
                     slidingWindow();
                     fflush(stdout);
                 }
-                // TODO: Send FIN packet
             }
 
             // Buffer out of order ACKs
             else
             {
                 successACK(rcvpkt.seqNum);
-                InitPacket(&sndpkt[rcvpkt.seqNum]);
+                //InitPacket(&sndpkt[rcvpkt.seqNum]);
 
-                blueMSG("Buffering out of order ACK for packet sequencenumber");
+                blueMSG("Buffering out of order ACK for packet sequencenumber: ");
                 printf(" %d\n", rcvpkt.seqNum);
 
                 ACK_buffer[rcvpkt.seqNum] = 1;
@@ -155,11 +159,12 @@ int main()
     socklen_t rcvAddrLen;
     base = 0;
     nextSeqNum = 0;
+
     runThreads = true;
     // printf("One small step for dev...\n");
     srand(time(NULL));
 
-    for (int i = 0; i < WINSIZE; i++)
+    for (int i = 0; i < NUMFRAMES; i++)
     {
         InitPacket(&sndpkt[i]);
     }

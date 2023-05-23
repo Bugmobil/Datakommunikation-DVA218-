@@ -66,7 +66,7 @@ Usage: server <options>
 #define ERRORRATE 0 // (1-99) as error rate in percent (default 0)
 #define FRAMESIZE 20 // (1-3000) as frame size in bytes
 #define LINKSPEED 100 // (1-10000) in kilobits (1000 bits) per seconds
-#define NUMFRAMES  100 // (1-1000) as number of frames
+#define NUMFRAMES  30 // (1-1000) as number of frames
 #define PROPDELAY  10 // (1-1000) as one-way propagation delay in ms
 #define TIMEOUT    20 // (1-5000) as timeout in ms (default 200)
 #define WINSIZE    16 // (1-1024) as window size in number of frames
@@ -157,5 +157,5 @@ void successPKT(int seqNum);
 void failMSG(char *msg);
 void successACK(int seqNum);
 void blueMSG(char *msg);
-
+void execMSG();
 #endif

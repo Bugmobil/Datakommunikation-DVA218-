@@ -33,6 +33,7 @@ Packet make_pkt(int seqNum, char *data, int ID)
     Packet pkt;
     InitPacket(&pkt);
     pkt.seqNum = seqNum;
+    pkt.ID = ID;
     strncpy(pkt.data, data, sizeof(pkt.data));
     pkt.dataSize = strlen(pkt.data);
     pkt.checksum = checksum(&pkt);
@@ -253,14 +254,19 @@ void slidingWindow()
 {
 
     printf(YEL "\n\nSliding window " RESET);
-    printf("(Size: %d)\n", WINSIZE);
+    printf("(Size: %d)\n", NUMFRAMES);
     printf("[ ");
     // sequence numbers
-    for (int i = 0; i < WINSIZE; i++)
+    for (int i = 0; i < NUMFRAMES; i++)
     {
+        if (i == base)
+            printf(BLU "%d" RESET, sndpkt[i].ID);
+        else if (i == nextSeqNum)
+            printf(MAG "%d" RESET, sndpkt[i].ID);
+        else
         printf("%d ", sndpkt[i].seqNum);
 
-        if (i < WINSIZE - 1)
+        if (i < NUMFRAMES - 1)
             printf("| ");
     }
     printf("]\n\n");

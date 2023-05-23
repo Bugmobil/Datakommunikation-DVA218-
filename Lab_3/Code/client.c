@@ -49,7 +49,7 @@ void dataHandling(void *args)
                     ACKpkt(targs, true);
 
                     slidingWindow();
-                    expectedSeqNum = (expectedSeqNum + 1) % FRAMESIZE;
+                    expectedSeqNum = (expectedSeqNum + 1) % WINSIZE;
                     extractAndDeliver(pkt);
 
                     printf(GRN "Expected sequence number received. Sending ACK to server.\n" RESET);
@@ -61,7 +61,7 @@ void dataHandling(void *args)
                         pkt = outOfOrder_buffer[expectedSeqNum];
                         extractAndDeliver(pkt);
                         printf(YEL "Packet %d extracted from out-of-order buffer and sent to application layer.\n" RESET, pkt.seqNum);
-                        expectedSeqNum = (expectedSeqNum + 1) % FRAMESIZE;
+                        expectedSeqNum = (expectedSeqNum + 1) % WINSIZE;
                         printf("Expected sequence number incremented to: %d\n", expectedSeqNum);
                     }
                 }
