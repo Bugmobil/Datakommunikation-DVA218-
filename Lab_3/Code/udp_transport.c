@@ -27,7 +27,7 @@ pthread_t timerThreads[NUMFRAMES] = {0};
 /* =============== End of Globalz =============== */
 
 // Stores the packet's relative information
-Packet make_pkt(int seqNum, char *data)
+Packet make_pkt(int seqNum, char *data, int ID)
 {
 
     Packet pkt;
@@ -118,9 +118,9 @@ void extractAndDeliver(Packet rcvpkt)
 {
     char rcvMsg[messageLength];
     strcpy(rcvMsg, rcvpkt.data);
-    printf("Extracting received data\n");
-    printLoadingBar();
-    printf("Received data: %s\n", rcvMsg);
+    //printf("Extracting received data\n");
+    //printLoadingBar();
+    printf("Received message: %s\n", rcvMsg);
 }
 
 // Sends an ACK or NACK packet to the sender
@@ -159,7 +159,7 @@ uint32_t checksum(Packet *pkt)
     // Include the other fields in the checksum
     hash = ((hash << 5) + hash) + pkt->dataSize;
     hash = ((hash << 5) + hash) + pkt->seqNum;
-    hash = ((hash << 5) + hash) + pkt->timestamp;
+    hash = ((hash << 5) + hash) + pkt->ID;
 
     return hash;
 }
@@ -174,12 +174,12 @@ int checkCorrupt(Packet pkt)
    
     if (pkt.checksum == checksum(&pkt))
     {
-        successMSG("Correct packet received");
+        successMSG("Checksum");
         return 0;
     }
     else
     {
-        failMSG("Corrupted packet received");
+        failMSG("Checksum");
         printf("Expected checksum: %d, Received checksum: %d\n", pkt.checksum, checksum(&pkt));
         return 1;
     }
@@ -193,12 +193,12 @@ int checkSeqNum(int rcvSeqNum, int expSeqNum)
 {
     if (rcvSeqNum == expSeqNum)
     {
-        successMSG("Correct sequence number received");
+        successMSG("Sequence number");
         return 0;
     }
     else
     {
-        failMSG("Incorrect sequence number received");
+        failMSG("Sequence number");
         printf("Expected sequence number: %d, Received sequence number: %d\n", expSeqNum, rcvSeqNum);
         return 1;
     }
@@ -209,17 +209,17 @@ Timer functions
 */
 void start_timer(struct thread_args *args, int seqNum)
 {
-    printf("Starting timer for packet %d\n", seqNum);
+    //printf("Starting timer for packet %d\n", seqNum);
     pthread_create(&timerThreads[seqNum], NULL, timeout, (void *)args);
 }
 void stop_timer(int seqNum)
 {
-    printf("Stopping timer for packet %d\n", seqNum);
+    //printf("Stopping timer for packet %d\n", seqNum);
     pthread_cancel(timerThreads[seqNum]);
 }
 void restart_timer(struct thread_args *args, int seqNum)
 {
-    printf("Restarting timer for packet %d\n", seqNum);
+    //printf("Restarting timer for packet %d\n", seqNum);
     stop_timer(seqNum);
     start_timer(args, seqNum);
 }
@@ -239,6 +239,7 @@ void *timeout(void *arg)
         {
             printf(RED "Timeout for packet %d\n" RESET, targs->seqNum);
             printf("Retransmitting packet\n");
+
             // If not, retransmit the packet
             udt_send(&sndpkt[targs->seqNum], targs->sockfd, &(targs->addr));
             restart_timer(targs, targs->seqNum);
