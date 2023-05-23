@@ -31,7 +31,15 @@ void dataHandling(void *args)
         printf("Packet received:\n");
         printPacket(pkt);
         pkt.dataSize = strlen(pkt.data); // Adds NULL terminator at the end of the message
-        if (pkt.dataSize != 0)
+
+        if (pkt.FIN == 1)
+        {
+            slidingWindow();
+            printf("FIN received. Closing connection.\n");
+            runThreads = false;
+        }
+        
+        else if (pkt.dataSize != 0)
         {
             targs->seqNum = pkt.seqNum;
             if (!checkCorrupt(pkt))
@@ -78,12 +86,6 @@ void dataHandling(void *args)
                 ACKpkt(targs, false);
                 slidingWindow();
             }
-        }
-        else if (pkt.FIN == 1)
-        {
-            slidingWindow();
-            printf("FIN received. Closing connection.\n");
-            runThreads = false;
         }
     }
 }

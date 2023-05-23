@@ -15,7 +15,9 @@ pthread_mutex_t mutex;
 pthread_t rcvThread, sendThread, timerThread;
 struct thread_args sendTargs;
 int ACK_buffer[NUMFRAMES];
+int ackCount = 0;
 int framesSent = 0;
+time_t start, end;
 
 void GenerateMGS(char *sendMSG, int maxLen)
 {
@@ -33,10 +35,10 @@ void sendData(void *args)
 {
     struct thread_args *targs = (struct thread_args *)args;
     char sendMSG[FRAMESIZE];
-
+    start = time(NULL);
     while (runThreads)
     {
-        
+
         sleep(1);
         GenerateMGS(sendMSG, FRAMESIZE);
         if (framesSent != NUMFRAMES)
@@ -45,24 +47,25 @@ void sendData(void *args)
             {
                 pthread_mutex_lock(&mutex); // Lock the mutex
                 // Create packet, send it, and store it in the buffer
-                sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG);
+                sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG, framesSent);
                 udt_send(&sndpkt[nextSeqNum], targs->sockfd, &(targs->addr));
                 targs->seqNum = nextSeqNum;
                 start_timer(targs, nextSeqNum);
+
+                printf("Sending packet:\n");
                 printPacket(sndpkt[nextSeqNum]);
-                nextSeqNum = (nextSeqNum + 1) % WINSIZE;
+
+                nextSeqNum = (nextSeqNum + 1) % FRAMESIZE;
                 framesSent++;
+                pthread_mutex_unlock(&mutex); // Unlock the mutex
+
                 slidingWindow();
                 fflush(stdout);
-
-                pthread_mutex_unlock(&mutex); // Unlock the mutex
             }
         }
         else
         {
-            close(targs->sockfd);
-            runThreads = false;
-            exit(EXIT_SUCCESS);
+            successMSG("All packets sent. Waiting for ACKs.");
         }
     }
 }
@@ -79,6 +82,15 @@ void rcvData(void *args)
 
         Packet rcvpkt;
         InitPacket(&rcvpkt);
+        if (ackCount == NUMFRAMES)
+        {
+            Packet pkt = make_pkt(-1, "FIN", framesSent);
+            udt_send(&pkt, targs->sockfd, &(targs->addr));
+            end = time(NULL);
+            printf("Time elapsed: %ld\n", end - start);
+            usleep(1000);
+            runThreads = false;
+        }
         rdt_rcv(&rcvpkt, targs->sockfd, &(targs->addr));
 
         pthread_mutex_lock(&mutex); // Lock the mutex
@@ -101,7 +113,8 @@ void rcvData(void *args)
                 {
                     ACK_buffer[base] = 0;
                     stop_timer(base);
-                    printf("Removing out of order ACK for packet sequencenumber %d\n", base);
+                    blueMSG("Removing out of order ACK for packet sequencenumber");
+                    printf(" %d\n", base);
                     base = (base + 1) % NUMFRAMES;
                     framesSent++;
                     slidingWindow();
@@ -115,12 +128,16 @@ void rcvData(void *args)
             {
                 successACK(rcvpkt.seqNum);
                 InitPacket(&sndpkt[rcvpkt.seqNum]);
-                printf("Buffering out of order ACK for packet sequencenumber %d\n", rcvpkt.seqNum);
+
+                blueMSG("Buffering out of order ACK for packet sequencenumber");
+                printf(" %d\n", rcvpkt.seqNum);
+
                 ACK_buffer[rcvpkt.seqNum] = 1;
                 stop_timer(rcvpkt.seqNum);
                 slidingWindow();
                 fflush(stdout);
             }
+            ackCount++;
         }
         else // if Packet isn't an ACK its a NACK or corrupted
         {

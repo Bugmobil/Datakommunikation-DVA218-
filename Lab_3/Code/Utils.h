@@ -89,7 +89,7 @@ typedef struct
     char data[messageLength];
     int dataSize;
     int seqNum;
-    time_t timestamp;
+    int ID;
     uint32_t checksum;
 } Packet;
 
@@ -155,6 +155,6 @@ void successMSG(char *msg);
 void successPKT(int seqNum);
 void failMSG(char *msg);
 void successACK(int seqNum);
-void corruptedMSG(int seqNum);
+void blueMSG(char *msg);
 
 #endif

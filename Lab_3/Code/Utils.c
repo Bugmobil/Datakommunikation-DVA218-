@@ -21,7 +21,7 @@ void InitPacket(Packet *packet)
     packet->data[0] = '\0';
     packet->dataSize = 0;
     packet->seqNum = -1;
-    packet->timestamp = 0;
+    packet->ID = 0;
     packet->checksum = 0;
 }
 void Serialize(char *serializedPacket, Packet packet)
@@ -29,7 +29,7 @@ void Serialize(char *serializedPacket, Packet packet)
     uint16_t flags = 0;
     uint32_t dataSize = htonl(packet.dataSize);
     uint32_t seqNum = htonl(packet.seqNum);
-    uint32_t timestamp = htonl(packet.timestamp);
+    uint32_t timestamp = htonl(packet.ID);
     uint32_t checksum = htonl(packet.checksum);
 
     if (packet.ACK)
@@ -71,7 +71,7 @@ void Deserialize(char *serializedPacket, Packet *packet)
     packet->NACK = 1 & (flags >> 3);
 
     packet->seqNum = ntohl(seqNum);
-    packet->timestamp = ntohl(timestamp);
+    packet->ID = ntohl(timestamp);
     packet->checksum = ntohl(checksum);
 }
 
@@ -183,6 +183,15 @@ void printPacket(Packet pkt)
     printf(BLU "└ ・・・・・・・・・・・・・・ ┘\n\n"RESET);
 }
 
+void execMSG()
+{
+    printf("Simulation started!\n");
+    printf("Number of frames: %d | ", NUMFRAMES);
+    printf("Frame size: %d byte\n", FRAMESIZE);
+    printf("Packet size: %d\n", PACKET_SIZE);
+
+}
+
 /* Error Handling */
 void errorLocation(const char *function, const char *file, int line)
 {
@@ -200,11 +209,6 @@ void warningMSG(char *func, char *problem)
     printf(YEL "Warning in function: %s" RESET, func);
     printf("Problem: %s\n", problem);
 }
-void successMSG(char *msg)
-{
-    printf(GRN " PASS\n" RESET);
-    printf("%s: ", msg);
-}
 void successPKT(int seqNum)
 {
     printf(GRN "Packet successfully sent! " RESET);
@@ -212,10 +216,16 @@ void successPKT(int seqNum)
     printf(MAG " %d\n" RESET, seqNum);
 }
 
+void successMSG(char *msg)
+{
+    printf("%s: ", msg);
+    printf(GRN "PASSED\n" RESET);
+}
+
 void failMSG(char *msg)
 {
-    printf(RED "FAILED\n" RESET);
     printf("%s: ", msg);
+    printf(RED "FAILED\n" RESET);
 }
 void successACK(int seqNum)
 {
@@ -223,10 +233,8 @@ void successACK(int seqNum)
     printf("Sequence number: ");
     printf(MAG " %d\n" RESET, seqNum);
 }
-void corruptedMSG(int seqNum)
+void blueMSG(char *msg)
 {
-    printf(RED "Corrupted packet! " RESET);
-    printf("Sequence number: ");
-    printf(MAG " %d\n" RESET, seqNum);
+    printf(BLU "%s\n" RESET, msg);
 }
 /* End of Error Handling */
