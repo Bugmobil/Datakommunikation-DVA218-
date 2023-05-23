@@ -34,6 +34,7 @@ Packet make_pkt(int seqNum, char *data)
     InitPacket(&pkt);
     pkt.seqNum = seqNum;
     strncpy(pkt.data, data, sizeof(pkt.data));
+    pkt.dataSize = strlen(pkt.data);
     pkt.checksum = checksum(&pkt);
 
     // printPacket(pkt);
@@ -59,7 +60,6 @@ Packet make_ACKpkt(int seqNum, bool ACK, bool NACK)
 void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
 {
     char buffer[PACKET_SIZE];
-    pkt->dataSize = strlen(pkt->data);
     Serialize(buffer, *pkt); // Serialize the packet into a buffer
 
     // Use SendFaulty() to send the serialized packet using the UDP socket
@@ -181,7 +181,7 @@ int checkCorrupt(Packet pkt)
     {
         failMSG("Corrupted packet received");
         printf("Expected checksum: %d, Received checksum: %d\n", pkt.checksum, checksum(&pkt));
-        return -1;
+        return 1;
     }
 }
 
@@ -200,7 +200,7 @@ int checkSeqNum(int rcvSeqNum, int expSeqNum)
     {
         failMSG("Incorrect sequence number received");
         printf("Expected sequence number: %d, Received sequence number: %d\n", expSeqNum, rcvSeqNum);
-        return -1;
+        return 1;
     }
 }
 
