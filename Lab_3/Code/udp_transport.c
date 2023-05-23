@@ -19,10 +19,10 @@ int base = 0, nextSeqNum = 0, expectedSeqNum = 0;
 bool runThreads = true;
 
 // Arrays
-Packet sndpkt[WINSIZE] = {0};
-Packet outOfOrder_buffer[WINSIZE] = {0};
-int ACK_buffer[WINSIZE] = {0};
-pthread_t timerThreads[WINSIZE] = {0};
+Packet sndpkt[NUMFRAMES] = {0};
+Packet outOfOrder_buffer[NUMFRAMES] = {0};
+int ACK_buffer[NUMFRAMES] = {0};
+pthread_t timerThreads[NUMFRAMES] = {0};
 
 /* =============== End of Globalz =============== */
 
@@ -37,8 +37,8 @@ Packet make_pkt(int seqNum, char *data)
     strncpy(pkt.data, data, pkt.dataSize);
     pkt.checksum = checksum(&pkt);
 
-   // printf("make_pkt: ");
-    //printPacket(pkt);
+    // printf("make_pkt: ");
+    // printPacket(pkt);
     return pkt;
 }
 
@@ -46,12 +46,12 @@ Packet make_ACKpkt(int seqNum, bool ACK, bool NACK, bool FIN)
 {
     Packet ACKpkt;
     InitPacket(&ACKpkt);
-    ACKpkt.data[0] = '\0';
     ACKpkt.seqNum = seqNum;
     ACKpkt.ACK = ACK;
     ACKpkt.NACK = NACK;
     ACKpkt.FIN = FIN;
     strcpy(ACKpkt.data, "ACK packet");
+    ACKpkt.data[FRAMESIZE - 1] = '\0'; // Make sure the string is null-terminated
     ACKpkt.dataSize = strlen(ACKpkt.data);
     ACKpkt.checksum = checksum(&ACKpkt);
 
@@ -63,10 +63,10 @@ void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
 {
     char buffer[PACKET_SIZE];
     Serialize(buffer, *pkt); // Serialize the packet into a buffer
-    //printf("Packet.data = %s = %s\n", pkt->data, buffer + 2);
-    //printf("Packet.size = %d\n", pkt->dataSize);
-    //sendto(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
-    // Use SendFaulty() to send the serialized packet using the UDP socket
+    // printf("Packet.data = %s = %s\n", pkt->data, buffer + 2);
+    // printf("Packet.size = %d\n", pkt->dataSize);
+    // sendto(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
+    //  Use SendFaulty() to send the serialized packet using the UDP socket
     SendFaulty(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
 }
 
@@ -113,8 +113,8 @@ void extractAndDeliver(Packet rcvpkt)
 {
     char rcvMsg[messageLength];
     strcpy(rcvMsg, rcvpkt.data);
-    //printf("Extracting received data\n");
-    //printLoadingBar();
+    // printf("Extracting received data\n");
+    // printLoadingBar();
     printf("Received message: %s\n", rcvMsg);
 }
 
@@ -165,7 +165,7 @@ Returns 0 if the packet is not corrupted.
 */
 int checkCorrupt(Packet pkt)
 {
-   
+
     if (pkt.checksum == checksum(&pkt))
     {
         successMSG("Checksum");
@@ -203,21 +203,21 @@ Timer functions
 */
 void start_timer(struct thread_args *args, int seqNum)
 {
-    //printf("Starting timer for packet %d\n", seqNum);
+    // printf("Starting timer for packet %d\n", seqNum);
     pthread_create(&timerThreads[seqNum], NULL, (void *)timeout, (void *)args);
 }
 void stop_timer(int seqNum)
 {
-    //printf("Stopping timer for packet %d\n", seqNum);
+    // printf("Stopping timer for packet %d\n", seqNum);
     pthread_cancel(timerThreads[seqNum]);
 }
 void restart_timer(struct thread_args *args, int seqNum)
 {
-    //printf("Restarting timer for packet %d\n", seqNum);
+    // printf("Restarting timer for packet %d\n", seqNum);
     stop_timer(seqNum);
     start_timer(args, seqNum);
 }
-void timeout(void *arg)
+void *timeout(void *arg)
 {
     struct thread_args *targs = (struct thread_args *)arg;
 
@@ -228,23 +228,33 @@ void timeout(void *arg)
     {
         // Sleep for the timeout duration
         usleep(miliToMicro(TIMEOUT));
-        printf(RED "Timeout for packet %d\n" RESET, targs->seqNum);
-        printf("Retransmitting packet\n");
-        //stop_timer(targs->seqNum);
-        // If not, retransmit the packet
-        usleep(miliToMicro(PROPDELAY));
-        udt_send(&sndpkt[targs->seqNum], targs->sockfd, &(targs->addr));
+        if (sndpkt[targs->seqNum].ACK == 1)
+        {
+            stop_timer(targs->seqNum);
+            break;
+        }
+        else
+        {
+            printf(RED "Timeout for packet %d\n" RESET, targs->seqNum);
+            printf("Retransmitting packet\n");
+            // stop_timer(targs->seqNum);
+            //  If not, retransmit the packet
+            usleep(miliToMicro(PROPDELAY));
+            udt_send(&sndpkt[targs->seqNum], targs->sockfd, &(targs->addr));
+            restart_timer(targs, targs->seqNum);
+        }
     }
-
+    return NULL;
 }
+
 
 void slidingWindow()
 {
-    printf(YEL "\n\nSliding window " RESET);
-    printf("(Size: %d)\n", WINSIZE);
+    printf(YEL "\n\nSliding window [%d] " RESET, NUMFRAMES);
+    printf("(Window Size: %d)\n", WINSIZE);
     printf("[ ");
     // sequence numbers
-    for (int i = 0; i < WINSIZE; i++)
+    for (int i = 0; i < NUMFRAMES; i++)
     {
         if (i < base)
             printf("%d ", sndpkt[i].seqNum);
@@ -253,9 +263,8 @@ void slidingWindow()
         else if (sndpkt[i].seqNum != -1) // assuming -1 indicates an "empty slot"
             printf("%d ", sndpkt[i].seqNum);
 
-        if (i < WINSIZE - 1)
-            printf("| ");
+        if (i < NUMFRAMES - 1)
+            printf(" | ");
     }
     printf("]\n\n");
 }
-

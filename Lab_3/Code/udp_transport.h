@@ -32,10 +32,10 @@ extern int base, nextSeqNum, expectedSeqNum;
 extern bool runThreads;
 
 // Arrays
-extern Packet sndpkt[WINSIZE];
-extern Packet outOfOrder_buffer[WINSIZE];
-extern int ACK_buffer[WINSIZE];
-extern pthread_t timerThreads[WINSIZE];
+extern Packet sndpkt[NUMFRAMES];
+extern Packet outOfOrder_buffer[NUMFRAMES];
+extern int ACK_buffer[NUMFRAMES];
+extern pthread_t timerThreads[NUMFRAMES];
 
 /* =============== End of Globalz =============== */
 
@@ -64,7 +64,7 @@ void printLoadingBar();
 void start_timer(struct thread_args *args, int seqNum);
 void restart_timer(struct thread_args *args, int seqNum);
 void stop_timer(int seqNum);
-void timeout(void *arg);
+void *timeout(void *arg);
 
 
 /* =============== End of Functions =============== */

@@ -63,17 +63,17 @@ Usage: server <options>
 -?            shows this help 
 */
 
-#define ERRORRATE 2 // (1-99) as error rate in percent (default 0)
+#define ERRORRATE 10 // (1-99) as error rate in percent (default 0)
 #define FRAMESIZE 256 // (1-3000) as frame size in bytes
 #define LINKSPEED 100 // (1-10000) in kilobits (1000 bits) per seconds
-#define NUMFRAMES  30 // (1-1000) as number of frames
+#define NUMFRAMES  10 // (1-1000) as number of frames
 #define PROPDELAY  10 // (1-1000) as one-way propagation delay in ms
 #define RTT        PROPDELAY/3 // (1-5000) as round trip time in ms
-#define TIMEOUT    PROPDELAY*10 // (1-5000) as timeout in ms (default 200)
-#define WINSIZE    16 // (1-1024) as window size in number of frames
+#define TIMEOUT    PROPDELAY*3 // (1-5000) as timeout in ms (default 200)
+#define WINSIZE    5 // (1-1024) as window size in number of frames
 
-#define TIMEOUTLONG TIMEOUT * (10 + PROPDELAY)
-#define TIMEOUTUSEC TIMEOUT * 1000
+#define TIMEOUTLONG 10 * (10 + PROPDELAY)
+#define TIMEOUTUSEC 10 * 1000
 
 
 /*======== END OF START VALUES ========*/

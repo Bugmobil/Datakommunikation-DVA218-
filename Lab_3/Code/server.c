@@ -43,24 +43,37 @@ void sendData(void *args)
         GenerateMGS(sendMSG, FRAMESIZE);
         if (ackCount <= NUMFRAMES && framesSent <= NUMFRAMES)
         {
-            if (nextSeqNum < base + WINSIZE/2)
+            if (nextSeqNum < base + WINSIZE)
             {
                 pthread_mutex_lock(&mutex); // Lock the mutex
                 // Create packet, send it, and store it in the buffer
                 sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG);
-               
+
                 udt_send(&sndpkt[nextSeqNum], targs->sockfd, &(targs->addr));
                 targs->seqNum = nextSeqNum;
                 start_timer(targs, nextSeqNum);
 
                 printf("Sending packet: %d\n", framesSent);
                 printPacket(sndpkt[nextSeqNum]);
-                nextSeqNum = (nextSeqNum + 1) % WINSIZE;
+                nextSeqNum = (nextSeqNum + 1) % NUMFRAMES;
+                printf("NextSeqNum: %d\n", nextSeqNum);
                 framesSent++;
                 pthread_mutex_unlock(&mutex); // Unlock the mutex
 
                 slidingWindow();
                 fflush(stdout);
+            }
+            else{
+                for (int i = 0; i < NUMFRAMES; i++)
+                {
+                    printf("Packet [%d] status: %d/%d\n", sndpkt[i].seqNum, sndpkt[i].ACK, sndpkt[i].NACK);
+                    if(sndpkt[i].ACK != 1 && sndpkt[i].NACK != 1)
+                    {
+                        udt_send(&sndpkt[i], targs->sockfd, &(targs->addr));
+                        restart_timer(args, i);
+                    }
+                }
+                sleep(10);
             }
         }
         else
@@ -69,6 +82,7 @@ void sendData(void *args)
             fflush(stdout);
             pthread_exit(NULL);
         }
+        
     }
 }
 
@@ -88,13 +102,13 @@ void rcvData(void *args)
             sleep(5);
             printf("ACKs received: %d\n", ackCount);
             fflush(stdout);
-            Packet pkt = make_ACKpkt(targs->seqNum,0,0,1);
+            Packet pkt = make_ACKpkt(targs->seqNum, 0, 0, 1);
 
             udt_send(&pkt, targs->sockfd, &(targs->addr));
             runThreads = false;
-            
+
             printf("Network simulation finnished in: ");
-            printf(GRN"%ld s\n"RESET, end - start);
+            printf(GRN "%ld s\n" RESET, end - start);
             fflush(stdout);
 
             pthread_exit(NULL);
@@ -103,17 +117,18 @@ void rcvData(void *args)
         printTime();
 
         pthread_mutex_lock(&mutex); // Lock the mutex
-        
+
         printPacket(rcvpkt);
         if (rcvpkt.ACK == 1 && !checkCorrupt(rcvpkt)) // If the packet is an ACK
         {
-            
+
             if (base == rcvpkt.seqNum) // If the ACK is for the packet at the base of the buffer
             {
-                //InitPacket(&sndpkt[base]);     // Clear the packet from the buffer
-                stop_timer(rcvpkt.seqNum);     // Stop the timer for the packet
-                sndpkt[base].seqNum = -1;      // Set the sequence number to -1
-                base = (base + 1) % WINSIZE; // Move the base forward
+                // InitPacket(&sndpkt[base]);     // Clear the packet from the buffer
+                stop_timer(rcvpkt.seqNum); // Stop the timer for the packet
+                sndpkt[rcvpkt.seqNum].ACK = 1;
+                sndpkt[rcvpkt.seqNum].NACK = 0;
+                base = (base + 1) % NUMFRAMES; // Move the base forward
                 successACK(rcvpkt.seqNum);
                 ackCount++;
 
@@ -121,14 +136,13 @@ void rcvData(void *args)
                 fflush(stdout);
 
                 // Check for any out of order ACKs
-                while (ACK_buffer[base])
+                while (sndpkt[base].ACK == 1)
                 {
-                    ACK_buffer[base] = 0;
                     stop_timer(base);
                     blueMSG("Removing out of order ACK for packet sequencenumber");
                     printf(" %d\n", base);
-                    sndpkt[base].seqNum = -1;      // Set the sequence number to -1
-                    base = (base + 1) % WINSIZE;
+                    // sndpkt[base].seqNum = -1; // Set the sequence number to -1
+                    base = (base + 1) % NUMFRAMES;
                     ackCount++;
 
                     slidingWindow();
@@ -137,31 +151,32 @@ void rcvData(void *args)
             }
 
             // Buffer out of order ACKs
-            else if (rcvpkt.seqNum > base && ACK_buffer[rcvpkt.seqNum] == 0)
+            else if (rcvpkt.seqNum > base)
             {
                 successACK(rcvpkt.seqNum);
-                //InitPacket(&sndpkt[rcvpkt.seqNum]);
+                // InitPacket(&sndpkt[rcvpkt.seqNum]);
 
                 blueMSG("Buffering out of order ACK for packet sequencenumber: ");
                 printf(" %d\n", rcvpkt.seqNum);
-
-                ACK_buffer[rcvpkt.seqNum] = 1;
+                sndpkt[rcvpkt.seqNum].ACK = 1;
+                sndpkt[rcvpkt.seqNum].NACK = 0;
                 stop_timer(rcvpkt.seqNum);
                 slidingWindow();
                 fflush(stdout);
-                
             }
-            
         }
-        else // if Packet isn't an ACK its a NACK or corrupted
+        else
         {
             printf("NACK received for packet: %d\n", rcvpkt.seqNum);
-            rcvpkt.NACK = 0;
+            sndpkt[rcvpkt.seqNum].ACK = 0; // Set the ACK flag to 0
+
             udt_send(&sndpkt[rcvpkt.seqNum], targs->sockfd, &(targs->addr));
             restart_timer(targs, rcvpkt.seqNum); // Restart the timer for the packet
+
             slidingWindow();
             fflush(stdout);
         }
+        printf("Base: %d\n", base);
         printf("ACKs received: %d\n", ackCount);
         pthread_mutex_unlock(&mutex); // Unlock the mutex
     }
