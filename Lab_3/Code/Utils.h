@@ -63,7 +63,7 @@ Usage: server <options>
 -?            shows this help 
 */
 
-#define ERRORRATE 0 // (1-99) as error rate in percent (default 0)
+#define ERRORRATE 2 // (1-99) as error rate in percent (default 0)
 #define FRAMESIZE 256 // (1-3000) as frame size in bytes
 #define LINKSPEED 100 // (1-10000) in kilobits (1000 bits) per seconds
 #define NUMFRAMES  30 // (1-1000) as number of frames
@@ -128,7 +128,7 @@ void Deserialize(char *buffer, Packet *packet);
 void SendFlagPacket(int fd, struct sockaddr *destAddr, socklen_t addrLen, const char* flags);
 // Receives the flags specified by the flags argument. Argument flags must be four single bit numbers. Order goes ACK -> SYN -> FIN -> NACK
 int ReceiveFlagPacket(int fd, struct sockaddr *src_addr, socklen_t *addrLen, const char* flags);
-
+void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen);
 //Sets timer to current time
 void StartTimer(struct timeval* startTime);
 //Returns 1 if timeout has surpassed starTime. Otherwise returns 0
