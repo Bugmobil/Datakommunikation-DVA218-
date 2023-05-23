@@ -49,7 +49,7 @@ void sendData(void *args)
             {
                 pthread_mutex_lock(&mutex); // Lock the mutex
                 // Create packet, send it, and store it in the buffer
-                sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG, framesSent);
+                sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG);
                 udt_send(&sndpkt[nextSeqNum], targs->sockfd, &(targs->addr));
                 targs->seqNum = nextSeqNum;
                 start_timer(targs, nextSeqNum);
@@ -88,7 +88,7 @@ void rcvData(void *args)
             printf("ACKs received: %d\n", ackCount);
             fflush(stdout);
 
-            Packet pkt = make_pkt(-1, "FIN", framesSent + 1);
+            Packet pkt = make_pkt(-1, "FIN");
             udt_send(&pkt, targs->sockfd, &(targs->addr));
 
             

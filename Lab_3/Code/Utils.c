@@ -21,7 +21,7 @@ void InitPacket(Packet *packet)
     packet->data[0] = '\0';
     packet->dataSize = 0;
     packet->seqNum = -1;
-    packet->ID = 0;
+    //packet->ID = 0;
     packet->checksum = 0;
 }
 void Serialize(char *serializedPacket, Packet packet)
@@ -29,7 +29,7 @@ void Serialize(char *serializedPacket, Packet packet)
     uint16_t flags = 0;
     uint32_t dataSize = htonl(packet.dataSize);
     uint32_t seqNum = htonl(packet.seqNum);
-    uint32_t timestamp = htonl(packet.ID);
+    //uint32_t timestamp = htonl(packet.ID);
     uint32_t checksum = htonl(packet.checksum);
 
     if (packet.ACK)
@@ -45,7 +45,7 @@ void Serialize(char *serializedPacket, Packet packet)
     memcpy(serializedPacket + sizeof(uint16_t), &packet.data, packet.dataSize);
     memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t), &dataSize, sizeof(uint32_t));
     memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t) + sizeof(uint32_t), &seqNum, sizeof(uint32_t));
-    memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t) + 2 * sizeof(uint32_t), &timestamp, sizeof(uint32_t));
+   // memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t) + 2 * sizeof(uint32_t), &timestamp, sizeof(uint32_t));
     memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t) + 3 * sizeof(uint32_t), &checksum, sizeof(uint32_t));
 }
 void Deserialize(char *serializedPacket, Packet *packet)
@@ -71,7 +71,7 @@ void Deserialize(char *serializedPacket, Packet *packet)
     packet->NACK = 1 & (flags >> 3);
 
     packet->seqNum = ntohl(seqNum);
-    packet->ID = ntohl(timestamp);
+    //packet->ID = ntohl(timestamp);
     packet->checksum = ntohl(checksum);
 }
 

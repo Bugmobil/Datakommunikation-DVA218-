@@ -89,7 +89,6 @@ typedef struct
     char data[messageLength];
     int dataSize;
     int seqNum;
-    int ID;
     uint32_t checksum;
 } Packet;
 
