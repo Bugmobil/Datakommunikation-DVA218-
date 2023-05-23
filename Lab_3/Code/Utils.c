@@ -204,8 +204,8 @@ void warningMSG(char *func, char *problem)
 }
 void successMSG(char *msg)
 {
+    printf(GRN " PASS\n" RESET);
     printf("%s: ", msg);
-    printf(GRN " Check\n" RESET);
 }
 void successPKT(int seqNum)
 {
@@ -216,8 +216,8 @@ void successPKT(int seqNum)
 
 void failMSG(char *msg)
 {
-    printf("%s: ", msg);
     printf(RED "FAILED\n" RESET);
+    printf("%s: ", msg);
 }
 void successACK(int seqNum)
 {

@@ -36,18 +36,16 @@ void sendData(void *args)
 
     while (runThreads)
     {
-        // printf("Enter a message to send to the client:\n");
-        // fgets(sendMSG, messageLength, stdin);
-        //sendMSG[strlen(sendMSG) - 1] = '\0'; //Removes the '\n' at the end when gets is used
+        
         sleep(1);
         GenerateMGS(sendMSG, FRAMESIZE);
-        if (framesSent == NUMFRAMES)
+        if (framesSent != NUMFRAMES)
         {
             if (nextSeqNum < base + WINSIZE)
             {
                 pthread_mutex_lock(&mutex); // Lock the mutex
                 // Create packet, send it, and store it in the buffer
-                sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG, checksum(&sndpkt[nextSeqNum]));
+                sndpkt[nextSeqNum] = make_pkt(nextSeqNum, sendMSG);
                 udt_send(&sndpkt[nextSeqNum], targs->sockfd, &(targs->addr));
                 targs->seqNum = nextSeqNum;
                 start_timer(targs, nextSeqNum);

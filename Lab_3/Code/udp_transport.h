@@ -46,7 +46,7 @@ extern pthread_t timerThreads[NUMFRAMES];
 void printPacket(Packet pkt);
 
 // Functions for packet handling
-Packet make_pkt(int seqNum, char *data, int checksum);
+Packet make_pkt(int seqNum, char *data);
 Packet make_ACKpkt(int seqNum, bool ACK, bool NACK);
 void extractAndDeliver(Packet rcvpkt);
 

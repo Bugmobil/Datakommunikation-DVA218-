@@ -27,14 +27,14 @@ pthread_t timerThreads[NUMFRAMES] = {0};
 /* =============== End of Globalz =============== */
 
 // Stores the packet's relative information
-Packet make_pkt(int seqNum, char *data, int checksum)
+Packet make_pkt(int seqNum, char *data)
 {
 
     Packet pkt;
     InitPacket(&pkt);
     pkt.seqNum = seqNum;
     strncpy(pkt.data, data, sizeof(pkt.data));
-    pkt.checksum = checksum;
+    pkt.checksum = checksum(&pkt);
 
     // printPacket(pkt);
     return pkt;
@@ -44,12 +44,12 @@ Packet make_ACKpkt(int seqNum, bool ACK, bool NACK)
 {
     Packet ACKpkt;
     InitPacket(&ACKpkt);
-    ACKpkt.dataSize = 0;
     ACKpkt.data[0] = '\0';
     ACKpkt.seqNum = seqNum;
     ACKpkt.ACK = ACK;
     ACKpkt.NACK = NACK;
     strcpy(ACKpkt.data, "ACK packet");
+    ACKpkt.dataSize = strlen(ACKpkt.data);
     ACKpkt.checksum = checksum(&ACKpkt);
 
     // printPacket(ACKpkt);
@@ -160,7 +160,6 @@ uint32_t checksum(Packet *pkt)
     hash = ((hash << 5) + hash) + pkt->dataSize;
     hash = ((hash << 5) + hash) + pkt->seqNum;
     hash = ((hash << 5) + hash) + pkt->timestamp;
-    hash = ((hash << 5) + hash) + pkt->status;
 
     return hash;
 }
@@ -172,9 +171,8 @@ Returns 0 if the packet is not corrupted.
 */
 int checkCorrupt(Packet pkt)
 {
-    int diff = 0;
-    diff = pkt.checksum - checksum(&pkt);
-    if (diff == 0)
+   
+    if (pkt.checksum == checksum(&pkt))
     {
         successMSG("Correct packet received");
         return 0;

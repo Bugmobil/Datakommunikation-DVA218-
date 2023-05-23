@@ -68,7 +68,7 @@ Usage: server <options>
 #define LINKSPEED 100 // (1-10000) in kilobits (1000 bits) per seconds
 #define NUMFRAMES  100 // (1-1000) as number of frames
 #define PROPDELAY  10 // (1-1000) as one-way propagation delay in ms
-#define TIMEOUT    200 // (1-5000) as timeout in ms (default 200)
+#define TIMEOUT    20 // (1-5000) as timeout in ms (default 200)
 #define WINSIZE    16 // (1-1024) as window size in number of frames
 
 #define TIMEOUTLONG TIMEOUT * (10 + PROPDELAY)
@@ -91,7 +91,6 @@ typedef struct
     int seqNum;
     time_t timestamp;
     uint32_t checksum;
-    char status;
 } Packet;
 
 typedef struct
