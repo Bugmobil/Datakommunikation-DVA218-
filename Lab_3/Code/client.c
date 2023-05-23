@@ -31,19 +31,18 @@ void dataHandling(void *args)
         printf("Packet received:\n");
         printPacket(pkt);
         pkt.dataSize = strlen(pkt.data); // Adds NULL terminator at the end of the message
-        
-        if (pkt.dataSize != 0)
+        if (pkt.FIN == 1)
+                {
+                    printf(GRN "FIN received. Closing connection.\n" RESET);
+                    runThreads = false;
+                    pthread_exit(NULL);
+                }
+        else if (pkt.dataSize != 0)
         {
             targs->seqNum = pkt.seqNum;
             if (!checkCorrupt(pkt))
             {
-                if (pkt.FIN == 1)
-                {
-                    slidingWindow();
-                    printf("FIN received. Closing connection.\n");
-                    runThreads = false;
-                }
-                else if (!checkSeqNum(pkt.seqNum, expectedSeqNum))
+                if (!checkSeqNum(pkt.seqNum, expectedSeqNum))
                 {
                     ACKpkt(targs, true);
 

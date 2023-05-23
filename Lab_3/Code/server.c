@@ -14,7 +14,6 @@ pthread_mutex_t mutex;
 
 pthread_t rcvThread, sendThread, timerThread;
 struct thread_args sendTargs;
-int ACK_buffer[NUMFRAMES];
 int ackCount = 0;
 time_t start, end;
 int framesSent = 0;
@@ -67,7 +66,7 @@ void sendData(void *args)
         }
         else
         {
-            successMSG("All packets sent. Waiting for ACKs.");
+            successMSG("All packets sent.");
             fflush(stdout);
             pthread_exit(NULL);
         }
@@ -83,20 +82,20 @@ void rcvData(void *args)
     {
         Packet rcvpkt;
         InitPacket(&rcvpkt);
-        if (ackCount == NUMFRAMES)
+        if (ackCount >= NUMFRAMES)
         {
             printf("ACKs received: %d\n", ackCount);
             fflush(stdout);
 
-            Packet pkt = make_pkt(-1, "FIN");
+            Packet pkt = make_pkt(0, "FIN");
             udt_send(&pkt, targs->sockfd, &(targs->addr));
 
             
             end = time(NULL);
-            printf("Network simulation finnished in: %ld ms\n", end - start);
+            printf("Network simulation finnished in: %ld s\n", end - start);
             fflush(stdout);
             usleep(1000);
-            runThreads = false;
+            pthread_exit(NULL);
         }
         rdt_rcv(&rcvpkt, targs->sockfd, &(targs->addr));
 
@@ -105,12 +104,14 @@ void rcvData(void *args)
         printPacket(rcvpkt);
         if (rcvpkt.ACK == 1 && !checkCorrupt(rcvpkt)) // If the packet is an ACK
         {
+            printf("ACKs received: %d\n", ackCount);
             if (base == rcvpkt.seqNum) // If the ACK is for the packet at the base of the buffer
             {
                 //InitPacket(&sndpkt[base]);     // Clear the packet from the buffer
                 stop_timer(rcvpkt.seqNum);     // Stop the timer for the packet
                 base = (base + 1) % WINSIZE; // Move the base forward
                 successACK(rcvpkt.seqNum);
+                ackCount++;
                 slidingWindow();
                 fflush(stdout);
 
@@ -140,8 +141,9 @@ void rcvData(void *args)
                 stop_timer(rcvpkt.seqNum);
                 slidingWindow();
                 fflush(stdout);
+                ackCount++;
             }
-            ackCount++;
+            
         }
         else // if Packet isn't an ACK its a NACK or corrupted
         {
@@ -209,6 +211,7 @@ int main()
     ServerTeardown(sendTargs.sockfd, (struct sockaddr *)&sendTargs.addr, &rcvAddrLen);
 
     close(sendTargs.sockfd);
+    runThreads = false;
     pthread_mutex_destroy(&mutex);
 
     return 0;

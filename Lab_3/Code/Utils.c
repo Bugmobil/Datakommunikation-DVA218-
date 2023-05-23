@@ -53,13 +53,13 @@ void Deserialize(char *serializedPacket, Packet *packet)
     uint16_t flags;
     uint32_t dataSize;
     uint32_t seqNum;
-    uint32_t timestamp;
+    //uint32_t timestamp;
     uint32_t checksum;
 
     memcpy(&flags, serializedPacket, sizeof(uint16_t));
     memcpy(&dataSize, serializedPacket + FRAMESIZE + sizeof(uint16_t), sizeof(uint32_t));
     memcpy(&seqNum, serializedPacket + FRAMESIZE + sizeof(uint16_t) + sizeof(uint32_t), sizeof(uint32_t));
-    memcpy(&timestamp, serializedPacket + FRAMESIZE + sizeof(uint16_t) + 2 * sizeof(uint32_t), sizeof(uint32_t));
+    //memcpy(&timestamp, serializedPacket + FRAMESIZE + sizeof(uint16_t) + 2 * sizeof(uint32_t), sizeof(uint32_t));
     memcpy(&checksum, serializedPacket + FRAMESIZE + sizeof(uint16_t) + 3 * sizeof(uint32_t), sizeof(uint32_t));
 
     packet->dataSize = ntohl(dataSize);
@@ -85,7 +85,8 @@ void SendFlagPacket(int fd, struct sockaddr *destAddr, socklen_t addrLen, const 
     packet.FIN = flags[2] & 1;
     packet.NACK = flags[3] & 1;
     Serialize(serPkt, packet);
-    SendFaulty(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
+    sendto(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
+    //SendFaulty(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
 }
 int ReceiveFlagPacket(int fd, struct sockaddr *src_addr, socklen_t *addrLen, const char* flags)
 {
@@ -154,7 +155,7 @@ void ThreadSendDelay(ThreadSend* packet)
     sendto(packet->fd, packet->buffer, packet->size, 0, packet->destAddr, packet->addrLen);
     free(packet);
 }
-void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen)
+/*void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen)
 {
     ThreadSend* packet = malloc(sizeof(ThreadSend));
     if(GiveRandomNumber(1, 3) >= 2)
@@ -171,7 +172,7 @@ void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *dest
         packet->addrLen = addrLen;
         pthread_create(&sendThread, NULL, (void *)ThreadSendDelay, packet);
     }
-}
+}*/
 
 void printPacket(Packet pkt)
 {

@@ -89,6 +89,7 @@ typedef struct
     char data[messageLength];
     int dataSize;
     int seqNum;
+   // time_t timestamp;
     uint32_t checksum;
 } Packet;
 
@@ -143,7 +144,7 @@ void CorruptPacketPercentage(char* packet, int errorRate);
 //Sends packet with delay to simulate propagation delay
 void ThreadSendDelay(ThreadSend* packet);
 //Simulates sending packet with delay, corruption and packet loss
-void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen);
+//void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen);
 
 // Prints the packet's information
 void printPacket(Packet pkt);
