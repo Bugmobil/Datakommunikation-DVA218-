@@ -169,6 +169,7 @@ int SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destA
         packet.destAddr = destAddr;
         packet.addrLen = addrLen;
         pthread_create(&sendThread, NULL, (void *)ThreadSendDelay, (void *)&packet);
+        pthread_join(sendThread, NULL);
         return packet.returnValue;
     }
     return 1;
@@ -216,7 +217,7 @@ void successPKT(int seqNum)
 void failMSG(char *msg)
 {
     printf("%s: ", msg);
-    printf(RED "FAILED\n" RESET, msg);
+    printf(RED "FAILED\n" RESET);
 }
 void successACK(int seqNum)
 {
