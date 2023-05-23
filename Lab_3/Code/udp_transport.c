@@ -27,13 +27,12 @@ pthread_t timerThreads[NUMFRAMES] = {0};
 /* =============== End of Globalz =============== */
 
 // Stores the packet's relative information
-Packet make_pkt(int seqNum, char *data, int ID)
+Packet make_pkt(int seqNum, char *data)
 {
 
     Packet pkt;
     InitPacket(&pkt);
     pkt.seqNum = seqNum;
-    pkt.ID = ID;
     strncpy(pkt.data, data, sizeof(pkt.data));
     pkt.dataSize = strlen(pkt.data);
     pkt.checksum = checksum(&pkt);
@@ -151,7 +150,6 @@ uint32_t checksum(Packet *pkt)
     // Include the other fields in the checksum
     hash = ((hash << 5) + hash) + pkt->dataSize;
     hash = ((hash << 5) + hash) + pkt->seqNum;
-    hash = ((hash << 5) + hash) + pkt->ID;
 
     return hash;
 }
@@ -251,9 +249,9 @@ void slidingWindow()
     for (int i = 0; i < NUMFRAMES; i++)
     {
         if (i == base)
-            printf(BLU "%d" RESET, sndpkt[i].ID);
+            printf(BLU "%d" RESET, sndpkt[i].seqNum);
         else if (i == nextSeqNum)
-            printf(MAG "%d" RESET, sndpkt[i].ID);
+            printf(MAG "%d" RESET, sndpkt[i].seqNum);
         else
         printf("%d ", sndpkt[i].seqNum);
 

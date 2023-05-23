@@ -25,6 +25,7 @@ void InitPacket(Packet *packet)
 }
 void Serialize(char *serializedPacket, Packet packet)
 {
+    //printf("Entering Serialize\n");
     uint16_t flags = 0;
     uint32_t dataSize = htonl(packet.dataSize);
     uint32_t seqNum = htonl(packet.seqNum);
@@ -44,6 +45,8 @@ void Serialize(char *serializedPacket, Packet packet)
     memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t), &dataSize, sizeof(uint32_t));
     memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t) + sizeof(uint32_t), &seqNum, sizeof(uint32_t));
     memcpy(serializedPacket + FRAMESIZE + sizeof(uint16_t) + 2 * sizeof(uint32_t), &checksum, sizeof(uint32_t));
+
+    //printf("Serialize Complete\n");
 }
 void Deserialize(char *serializedPacket, Packet *packet)
 {
@@ -145,8 +148,11 @@ void CorruptPacketPercentage(char* packet, int errorRate)
 void ThreadSendDelay(ThreadSend* packet)
 {
     usleep(PROPDELAY * 1000);
+    printf("Sending: %ld == %d", sizeof(packet->buffer), packet->size);
     sendto(packet->fd, packet->buffer, packet->size, 0, packet->destAddr, packet->addrLen);
+    printf("Sent\n");
     free(packet);
+    printf("Freed\n");
 }
 void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen)
 {
@@ -158,13 +164,19 @@ void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *dest
             printf("Corrupting Packet...\n");
             CorruptPacket(buffer);
         }
+
+        sendto(fd, buffer, size, 0, destAddr, addrLen);
+        /*
         packet->fd = fd;
-        packet->buffer = buffer;
+        printf("Pre memcpy()\n");
+        memcpy(packet->buffer, buffer, PACKET_SIZE);
         packet->size = size;
         packet->flags = flags;
         packet->destAddr = destAddr;
         packet->addrLen = addrLen;
-        pthread_create(&sendThread, NULL, (void *)ThreadSendDelay, packet);
+        printf("Post memcpy()\n");
+        pthread_create(&sendThread, NULL, (void *)ThreadSendDelay, (ThreadSend*) packet);
+        */
     }
 }
 
