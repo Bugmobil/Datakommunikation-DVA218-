@@ -34,7 +34,7 @@ Packet make_pkt(int seqNum, char *data)
     InitPacket(&pkt);
     pkt.seqNum = seqNum;
     pkt.dataSize = strlen(pkt.data);
-    strncpy(pkt.data, data, pkt.dataSize);
+    strncpy(pkt.data, data, sizeof(pkt.data));
     
     pkt.checksum = checksum(&pkt);
 
