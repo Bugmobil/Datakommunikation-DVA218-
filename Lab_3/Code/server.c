@@ -207,7 +207,7 @@ int main()
     pthread_create(&sendThread, NULL, (void *)sendData, (void *)&sendTargs);
     pthread_create(&rcvThread, NULL, (void *)rcvData, (void *)&sendTargs);
 
-    pthread_join(rcvThread, NULL);
+    pthread_join(sendThread, NULL);
     pthread_join(rcvThread, NULL);
 
     timeout(&sendTargs);
