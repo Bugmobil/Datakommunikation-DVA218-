@@ -39,8 +39,6 @@ void sendData(void *args)
     sleep(1);
     while (runThreads)
     {
-
-        sleep(1);
         GenerateMGS(sendMSG, FRAMESIZE);
         if (framesSent != NUMFRAMES)
         {
@@ -55,7 +53,6 @@ void sendData(void *args)
 
                 printf("Sending packet: %d", framesSent);
                 printPacket(sndpkt[nextSeqNum]);
-
                 nextSeqNum = (nextSeqNum + 1) % WINSIZE;
                 framesSent++;
                 pthread_mutex_unlock(&mutex); // Unlock the mutex
@@ -70,6 +67,7 @@ void sendData(void *args)
             fflush(stdout);
             pthread_exit(NULL);
         }
+        sleep(RTT);
     }
 }
 
@@ -80,6 +78,7 @@ void rcvData(void *args)
     struct thread_args *targs = (struct thread_args *)args;
     while (runThreads)
     {
+        sleep(RTT);
         Packet rcvpkt;
         InitPacket(&rcvpkt);
         if (ackCount >= NUMFRAMES)

@@ -33,8 +33,9 @@ Packet make_pkt(int seqNum, char *data)
     Packet pkt;
     InitPacket(&pkt);
     pkt.seqNum = seqNum;
-    strncpy(pkt.data, data, sizeof(pkt.data));
     pkt.dataSize = strlen(pkt.data);
+    strncpy(pkt.data, data, pkt.dataSize);
+    
     pkt.checksum = checksum(&pkt);
 
     // printPacket(pkt);
@@ -223,7 +224,7 @@ void *timeout(void *arg)
     while (runThreads)
     {
         // Sleep for the timeout duration
-        usleep(TIMEOUTUSEC * 10);
+        usleep(miliToMicro(TIMEOUT));
         // Check if the packet has been acknowledged
         if (!sndpkt[targs->seqNum].ACK && !sndpkt[targs->seqNum].NACK)
         {

@@ -32,11 +32,11 @@ void dataHandling(void *args)
         printPacket(pkt);
         pkt.dataSize = strlen(pkt.data); // Adds NULL terminator at the end of the message
         if (pkt.FIN == 1)
-                {
-                    printf(GRN "FIN received. Closing connection.\n" RESET);
-                    runThreads = false;
-                    pthread_exit(NULL);
-                }
+        {
+            printf(GRN "FIN received. Closing connection.\n" RESET);
+            runThreads = false;
+            pthread_exit(NULL);
+        }
         else if (pkt.dataSize != 0)
         {
             if (!checkCorrupt(pkt))
@@ -46,6 +46,7 @@ void dataHandling(void *args)
                 {
                     ACKpkt(targs, true);
 
+                    usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
                     slidingWindow();
                     expectedSeqNum = (expectedSeqNum + 1) % WINSIZE;
                     extractAndDeliver(pkt);
@@ -67,6 +68,7 @@ void dataHandling(void *args)
                 {
                     outOfOrder_buffer[pkt.seqNum] = pkt;
                     ACKpkt(targs, true);
+                    usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
                     printf(BLU "Packet out of order. Sending ACK to server.\n" RESET);
                     slidingWindow();
                 }
@@ -74,6 +76,8 @@ void dataHandling(void *args)
                 {
                     printf(RED "Duplicate packet received. Sending ACK to server.\n" RESET);
                     ACKpkt(targs, true);
+                    usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
+
                     slidingWindow();
                 }
                 // printf("ACK's sent: %d, NACK's sent: %d, Next sequence number: %d\n", ACKsent,NACKsent,expectedSeqNum);
@@ -82,9 +86,11 @@ void dataHandling(void *args)
             {
                 printf(RED "Packet is corrupt. Sending NACK to server.\n" RESET);
                 ACKpkt(targs, false);
+                usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
                 slidingWindow();
             }
         }
+        sleep(RTT);
     }
 }
 

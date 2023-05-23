@@ -12,6 +12,10 @@
 char *testData = "These are the frames that we want to send to the server in correct order and without errors in the data or the ACKs";
 pthread_t sendThread;
 
+int miliToMicro(int mili)
+{
+    return mili * 1000;
+}
 void InitPacket(Packet *packet)
 {
     packet->ACK = 0;
@@ -195,6 +199,19 @@ void execMSG()
     printf("┊ Error rate: %d%%\n", ERRORRATE);
     printf(MAG "└ ・・・・・・・・・・・・・・ ┘\n"RESET);
 
+}
+
+
+void printTime()
+{
+    time_t rawtime;
+    struct tm * timeinfo;
+
+    time ( &rawtime );
+    timeinfo = localtime ( &rawtime );
+    printf(MAG "\n┌ ・・・・・・・・・・・・・・ ┐\n"RESET);
+    printf("┊ %s", asctime (timeinfo) );
+    printf(MAG "└ ・・・・・・・・・・・・・・ ┘\n"RESET);
 }
 
 /* Error Handling */
