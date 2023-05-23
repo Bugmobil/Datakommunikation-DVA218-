@@ -151,28 +151,26 @@ void CorruptPacketPercentage(char* packet, int errorRate)
 void ThreadSendDelay(ThreadSend* packet)
 {
     usleep(PROPDELAY * 1000);
-    packet->returnValue = sendto(packet->fd, packet->buffer, packet->size, 0, packet->destAddr, packet->addrLen);
+    sendto(packet->fd, packet->buffer, packet->size, 0, packet->destAddr, packet->addrLen);
+    free(packet);
 }
-int SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen)
+void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen)
 {
-    ThreadSend packet;
+    ThreadSend* packet = malloc(sizeof(ThreadSend));
     if(GiveRandomNumber(1, 3) >= 2)
     {
         if(GiveRandomNumber(1, 100) <= ERRORRATE)
         {
             CorruptPacket(buffer);
         }
-        packet.fd = fd;
-        packet.buffer = buffer;
-        packet.size = size;
-        packet.flags = flags;
-        packet.destAddr = destAddr;
-        packet.addrLen = addrLen;
-        pthread_create(&sendThread, NULL, (void *)ThreadSendDelay, (void *)&packet);
-        pthread_join(sendThread, NULL);
-        return packet.returnValue;
+        packet->fd = fd;
+        packet->buffer = buffer;
+        packet->size = size;
+        packet->flags = flags;
+        packet->destAddr = destAddr;
+        packet->addrLen = addrLen;
+        pthread_create(&sendThread, NULL, (void *)ThreadSendDelay, packet);
     }
-    return 1;
 }
 
 void printPacket(Packet pkt)
