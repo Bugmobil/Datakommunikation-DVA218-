@@ -158,10 +158,11 @@ void ThreadSendDelay(ThreadSend* packet)
 /*void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen)
 {
     ThreadSend* packet = malloc(sizeof(ThreadSend));
-    if(GiveRandomNumber(1, 3) >= 2)
+    if(GiveRandomNumber(1, 100) > ERRORRATE)
     {
         if(GiveRandomNumber(1, 100) <= ERRORRATE)
         {
+            printf("Corrupting Packet...\n");
             CorruptPacket(buffer);
         }
         packet->fd = fd;

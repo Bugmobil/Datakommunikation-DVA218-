@@ -34,7 +34,7 @@
 #define SERVER_IP "127.0.0.1"
 #define hostNameLength 50
 #define messageLength 256
-#define PACKET_SIZE FRAMESIZE + sizeof(uint16_t) + 4 * sizeof(uint32_t)
+#define PACKET_SIZE FRAMESIZE + sizeof(uint16_t) + 3 * sizeof(uint32_t)
 //#define TIMEOUT 1
 //#define MAXSEQ 30
 //#define N MAXSEQ/2 // window size
@@ -89,7 +89,6 @@ typedef struct
     char data[messageLength];
     int dataSize;
     int seqNum;
-   // time_t timestamp;
     uint32_t checksum;
 } Packet;
 
