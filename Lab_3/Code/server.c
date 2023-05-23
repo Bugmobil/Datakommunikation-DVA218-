@@ -41,9 +41,9 @@ void sendData(void *args)
     {
         usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
         GenerateMGS(sendMSG, FRAMESIZE);
-        if (ackCount != NUMFRAMES && framesSent < NUMFRAMES)
+        if (ackCount <= NUMFRAMES && framesSent <= NUMFRAMES)
         {
-            if (nextSeqNum < base + WINSIZE)
+            if (nextSeqNum < base + WINSIZE/2)
             {
                 pthread_mutex_lock(&mutex); // Lock the mutex
                 // Create packet, send it, and store it in the buffer
@@ -53,8 +53,8 @@ void sendData(void *args)
                 targs->seqNum = nextSeqNum;
                 start_timer(targs, nextSeqNum);
 
-                //printf("Sending packet: %d", framesSent);
-                //printPacket(sndpkt[nextSeqNum]);
+                printf("Sending packet: %d\n", framesSent);
+                printPacket(sndpkt[nextSeqNum]);
                 nextSeqNum = (nextSeqNum + 1) % WINSIZE;
                 framesSent++;
                 pthread_mutex_unlock(&mutex); // Unlock the mutex
@@ -82,20 +82,21 @@ void rcvData(void *args)
         usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
         Packet rcvpkt;
         InitPacket(&rcvpkt);
-        if (ackCount >= NUMFRAMES)
+        if (ackCount > NUMFRAMES)
         {
+            end = time(NULL);
+            sleep(5);
             printf("ACKs received: %d\n", ackCount);
             fflush(stdout);
+            Packet pkt = make_ACKpkt(targs->seqNum,0,0,1);
 
-            Packet pkt = make_pkt(0, "FIN");
-            
             udt_send(&pkt, targs->sockfd, &(targs->addr));
+            runThreads = false;
             
-            end = time(NULL);
             printf("Network simulation finnished in: ");
             printf(GRN"%ld s\n"RESET, end - start);
             fflush(stdout);
-            usleep(10000);
+
             pthread_exit(NULL);
         }
         rdt_rcv(&rcvpkt, targs->sockfd, &(targs->addr));
@@ -106,11 +107,12 @@ void rcvData(void *args)
         printPacket(rcvpkt);
         if (rcvpkt.ACK == 1 && !checkCorrupt(rcvpkt)) // If the packet is an ACK
         {
-            printf("ACKs received: %d\n", ackCount);
+            
             if (base == rcvpkt.seqNum) // If the ACK is for the packet at the base of the buffer
             {
                 //InitPacket(&sndpkt[base]);     // Clear the packet from the buffer
                 stop_timer(rcvpkt.seqNum);     // Stop the timer for the packet
+                sndpkt[base].seqNum = -1;      // Set the sequence number to -1
                 base = (base + 1) % WINSIZE; // Move the base forward
                 successACK(rcvpkt.seqNum);
                 ackCount++;
@@ -125,6 +127,7 @@ void rcvData(void *args)
                     stop_timer(base);
                     blueMSG("Removing out of order ACK for packet sequencenumber");
                     printf(" %d\n", base);
+                    sndpkt[base].seqNum = -1;      // Set the sequence number to -1
                     base = (base + 1) % WINSIZE;
                     ackCount++;
 
@@ -152,12 +155,14 @@ void rcvData(void *args)
         }
         else // if Packet isn't an ACK its a NACK or corrupted
         {
+            printf("NACK received for packet: %d\n", rcvpkt.seqNum);
             rcvpkt.NACK = 0;
             udt_send(&sndpkt[rcvpkt.seqNum], targs->sockfd, &(targs->addr));
             restart_timer(targs, rcvpkt.seqNum); // Restart the timer for the packet
             slidingWindow();
             fflush(stdout);
         }
+        printf("ACKs received: %d\n", ackCount);
         pthread_mutex_unlock(&mutex); // Unlock the mutex
     }
 }

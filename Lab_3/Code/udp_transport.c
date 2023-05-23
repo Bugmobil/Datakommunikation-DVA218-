@@ -37,12 +37,12 @@ Packet make_pkt(int seqNum, char *data)
     strncpy(pkt.data, data, pkt.dataSize);
     pkt.checksum = checksum(&pkt);
 
-    printf("make_pkt: ");
-    printPacket(pkt);
+   // printf("make_pkt: ");
+    //printPacket(pkt);
     return pkt;
 }
 
-Packet make_ACKpkt(int seqNum, bool ACK, bool NACK)
+Packet make_ACKpkt(int seqNum, bool ACK, bool NACK, bool FIN)
 {
     Packet ACKpkt;
     InitPacket(&ACKpkt);
@@ -50,6 +50,7 @@ Packet make_ACKpkt(int seqNum, bool ACK, bool NACK)
     ACKpkt.seqNum = seqNum;
     ACKpkt.ACK = ACK;
     ACKpkt.NACK = NACK;
+    ACKpkt.FIN = FIN;
     strcpy(ACKpkt.data, "ACK packet");
     ACKpkt.dataSize = strlen(ACKpkt.data);
     ACKpkt.checksum = checksum(&ACKpkt);
@@ -64,9 +65,9 @@ void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
     Serialize(buffer, *pkt); // Serialize the packet into a buffer
     //printf("Packet.data = %s = %s\n", pkt->data, buffer + 2);
     //printf("Packet.size = %d\n", pkt->dataSize);
-    sendto(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
+    //sendto(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
     // Use SendFaulty() to send the serialized packet using the UDP socket
-   // SendFaulty(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
+    SendFaulty(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
 }
 
 // Receives the packet from the source address using the UDP socket
@@ -126,7 +127,7 @@ void ACKpkt(struct thread_args *args, bool isACK)
     else
         NACK = true;
 
-    sndpkt[args->seqNum] = make_ACKpkt(args->seqNum, ACK, NACK);
+    sndpkt[args->seqNum] = make_ACKpkt(args->seqNum, ACK, NACK, false);
     udt_send(&sndpkt[args->seqNum], args->sockfd, &(args->addr));
 }
 

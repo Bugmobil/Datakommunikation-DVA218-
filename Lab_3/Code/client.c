@@ -16,7 +16,7 @@
 pthread_t sendThread, rcvThread;
 pthread_mutex_t mutex;
 int NACKsent = 0, ACKsent = 0;
-
+int packetCount = 0;
 void dataHandling(void *args)
 {
     printf("Initializing data handling thread.\n");
@@ -30,34 +30,28 @@ void dataHandling(void *args)
         rdt_rcv(&pkt, targs->sockfd, &(targs->addr));
         sndpkt[pkt.seqNum] = pkt;
         pkt.data[pkt.dataSize] = '\0';
-        printf("Packet received:\n");
-        printPacket(pkt);
+
         printTime();
-        pkt.dataSize = strlen(pkt.data); 
+        pkt.dataSize = strlen(pkt.data);
         if (pkt.dataSize != 0)
         {
             if (!checkCorrupt(pkt))
             {
-                targs->seqNum = pkt.seqNum;
                 if (pkt.FIN == 1)
-                    {
-                        printf(GRN "FIN received. Closing connection.\n" RESET);
-                        runThreads = false;
-                        pthread_exit(NULL);
-                    }
+                {
+                    printf(GRN "FIN received. Closing connection.\n" RESET);
+                    runThreads = false;
+                }
+                targs->seqNum = pkt.seqNum;
                 if (!checkSeqNum(pkt.seqNum, expectedSeqNum))
                 {
-                    if (pkt.FIN == 1)
-                    {
-                        printf(GRN "FIN received. Closing connection.\n" RESET);
-                        runThreads = false;
-                        pthread_exit(NULL);
-                    }
+
                     ACKpkt(targs, true);
 
                     slidingWindow();
                     expectedSeqNum = (expectedSeqNum + 1) % WINSIZE;
                     extractAndDeliver(pkt);
+                    packetCount++;
 
                     printf(GRN "Expected sequence number received. Sending ACK to server.\n" RESET);
                     printf(GRN "Packet %d extracted and sent to application layer.\n" RESET, pkt.seqNum);
@@ -67,6 +61,7 @@ void dataHandling(void *args)
                     {
                         pkt = outOfOrder_buffer[expectedSeqNum];
                         extractAndDeliver(pkt);
+                        packetCount++;
                         printf(YEL "Packet %d extracted from out-of-order buffer and sent to application layer.\n" RESET, pkt.seqNum);
                         expectedSeqNum = (expectedSeqNum + 1) % WINSIZE;
                         printf("Expected sequence number incremented to: %d\n", expectedSeqNum);
@@ -95,6 +90,7 @@ void dataHandling(void *args)
                 slidingWindow();
             }
         }
+        printf("Packets received: %d\n", packetCount);
     }
 }
 
@@ -179,12 +175,9 @@ int main(int argc, char *argv[])
     // pthread_join(rcvThread, NULL);
     // pthread_create(&sendThread, NULL, (void*)sendData, (void *)&sendTargs);
 
-    if (runThreads == false)
-    {
-        printf("Closing connection...\n");
-        ClientTeardown(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), &serverAddrLen);
-        close(sendTargs.sockfd);
-    }
+    printf("Closing connection...\n");
+    ClientTeardown(sendTargs.sockfd, (struct sockaddr *)&(sendTargs.addr), &serverAddrLen);
+    close(sendTargs.sockfd);
 
     return 0;
 }

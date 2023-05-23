@@ -93,8 +93,8 @@ void SendFlagPacket(int fd, struct sockaddr *destAddr, socklen_t addrLen, const 
     packet.FIN = flags[2] & 1;
     packet.NACK = flags[3] & 1;
     Serialize(serPkt, packet);
-    sendto(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
-    //SendFaulty(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
+    //sendto(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
+    SendFaulty(fd, serPkt, PACKET_SIZE, 0, destAddr, addrLen);
 }
 int ReceiveFlagPacket(int fd, struct sockaddr *src_addr, socklen_t *addrLen, const char* flags)
 {
@@ -168,16 +168,19 @@ void ThreadSendDelay(ThreadSend* packet)
 }
 void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen)
 {
+
+    char bufferCopy[PACKET_SIZE];
+    memcpy(bufferCopy, buffer, PACKET_SIZE);
     //ThreadSend* packet = malloc(sizeof(ThreadSend));
     if(GiveRandomNumber(1, 100) > ERRORRATE)
     {
         if(GiveRandomNumber(1, 100) <= ERRORRATE)
         {
             printf("Corrupting Packet...\n");
-            CorruptPacket(buffer);
+            CorruptPacket(bufferCopy);
         }
 
-        sendto(fd, buffer, size, 0, destAddr, addrLen);
+        sendto(fd, bufferCopy, size, 0, destAddr, addrLen);
         /*
         packet->fd = fd;
         printf("Pre memcpy()\n");
