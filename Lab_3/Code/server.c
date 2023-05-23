@@ -52,7 +52,7 @@ void sendData(void *args)
                 udt_send(&sndpkt[nextSeqNum], targs->sockfd, &(targs->addr));
                 targs->seqNum = nextSeqNum;
                 start_timer(targs, nextSeqNum);
-
+                pthread_join(timerThreads[nextSeqNum], NULL);
                 printf("Sending packet: %d\n", framesSent);
                 printPacket(sndpkt[nextSeqNum]);
                 nextSeqNum = (nextSeqNum + 1) % NUMFRAMES;
@@ -67,22 +67,21 @@ void sendData(void *args)
                 for (int i = 0; i < NUMFRAMES; i++)
                 {
                     printf("Packet [%d] status: %d/%d\n", sndpkt[i].seqNum, sndpkt[i].ACK, sndpkt[i].NACK);
-                    if(sndpkt[i].ACK != 1 && sndpkt[i].NACK != 1)
+                    if(sndpkt[i].ACK == 0)
                     {
                         udt_send(&sndpkt[i], targs->sockfd, &(targs->addr));
                         restart_timer(args, i);
                     }
                 }
-                sleep(10);
             }
-        }
+        }/*
         else
         {
             successMSG("All packets sent.");
             fflush(stdout);
             pthread_exit(NULL);
         }
-        
+        */
     }
 }
 
@@ -102,9 +101,9 @@ void rcvData(void *args)
             sleep(5);
             printf("ACKs received: %d\n", ackCount);
             fflush(stdout);
-            Packet pkt = make_ACKpkt(targs->seqNum, 0, 0, 1);
+            rcvpkt = make_ACKpkt(nextSeqNum, 0, 0, 1);
 
-            udt_send(&pkt, targs->sockfd, &(targs->addr));
+            udt_send(&rcvpkt, targs->sockfd, &(targs->addr));
             runThreads = false;
 
             printf("Network simulation finnished in: ");
@@ -124,10 +123,9 @@ void rcvData(void *args)
 
             if (base == rcvpkt.seqNum) // If the ACK is for the packet at the base of the buffer
             {
-                // InitPacket(&sndpkt[base]);     // Clear the packet from the buffer
+                InitPacket(&sndpkt[base]);     // Clear the packet from the buffer
                 stop_timer(rcvpkt.seqNum); // Stop the timer for the packet
-                sndpkt[rcvpkt.seqNum].ACK = 1;
-                sndpkt[rcvpkt.seqNum].NACK = 0;
+                //sndpkt[rcvpkt.seqNum].ACK = 1;
                 base = (base + 1) % NUMFRAMES; // Move the base forward
                 successACK(rcvpkt.seqNum);
                 ackCount++;
@@ -154,12 +152,12 @@ void rcvData(void *args)
             else if (rcvpkt.seqNum > base)
             {
                 successACK(rcvpkt.seqNum);
-                // InitPacket(&sndpkt[rcvpkt.seqNum]);
+                InitPacket(&sndpkt[rcvpkt.seqNum]);
 
                 blueMSG("Buffering out of order ACK for packet sequencenumber: ");
                 printf(" %d\n", rcvpkt.seqNum);
-                sndpkt[rcvpkt.seqNum].ACK = 1;
-                sndpkt[rcvpkt.seqNum].NACK = 0;
+                //sndpkt[rcvpkt.seqNum].ACK = 1;
+                //sndpkt[rcvpkt.seqNum].NACK = 0;
                 stop_timer(rcvpkt.seqNum);
                 slidingWindow();
                 fflush(stdout);
@@ -231,6 +229,7 @@ int main()
 
     pthread_join(sendThread, NULL);
     pthread_join(rcvThread, NULL);
+    
 
     timeout(&sendTargs);
 

@@ -204,7 +204,12 @@ Timer functions
 void start_timer(struct thread_args *args, int seqNum)
 {
     // printf("Starting timer for packet %d\n", seqNum);
-    pthread_create(&timerThreads[seqNum], NULL, (void *)timeout, (void *)args);
+    if (pthread_create(&timerThreads[seqNum], NULL, (void *)timeout, (void *)args))
+    {
+        errorLocation(__FUNCTION__, __FILE__, __LINE__);
+        errorMSG("start_timer --> pthread_create()");
+    }
+    
 }
 void stop_timer(int seqNum)
 {
@@ -213,9 +218,10 @@ void stop_timer(int seqNum)
 }
 void restart_timer(struct thread_args *args, int seqNum)
 {
-    // printf("Restarting timer for packet %d\n", seqNum);
+    printf("Restarting timer for packet %d\n", seqNum);
     stop_timer(seqNum);
     start_timer(args, seqNum);
+    pthread_join(timerThreads[seqNum], NULL);
 }
 void *timeout(void *arg)
 {
@@ -227,7 +233,8 @@ void *timeout(void *arg)
     while (runThreads)
     {
         // Sleep for the timeout duration
-        usleep(miliToMicro(TIMEOUT));
+        sleep(2);
+        //usleep(miliToMicro(TIMEOUT));
         if (sndpkt[targs->seqNum].ACK == 1)
         {
             stop_timer(targs->seqNum);

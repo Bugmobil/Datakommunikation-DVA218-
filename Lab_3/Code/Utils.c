@@ -135,6 +135,69 @@ int CheckTime(struct timeval startTime, int timeout)
     return (elapsedTime >= timeout) ? 1 : 0;
 }
 
+
+int GiveRandomNumber(const int from, const int to)
+{
+	return rand() % (to - from + 1) + from;
+}
+void CorruptPacket(char* packet)
+{
+    int errorRate;
+    errorRate = GiveRandomNumber(33, 67);
+    CorruptPacketPercentage(packet, errorRate);
+}
+void CorruptPacketPercentage(char* packet, int errorRate)
+{
+    size_t i;
+    for (i = 2; i < 2 + WINSIZE; i++)
+    {
+        if(packet[i] != '\0' && GiveRandomNumber(1, 100) <= errorRate)
+        {
+            packet[i] ^= (1 << (GiveRandomNumber(1, 8)));
+        }
+    }
+}
+
+void ThreadSendDelay(ThreadSend* packet)
+{
+    usleep(PROPDELAY * 1000);
+    printf("Sending: %ld == %d", sizeof(packet->buffer), packet->size);
+    sendto(packet->fd, packet->buffer, packet->size, 0, packet->destAddr, packet->addrLen);
+    printf("Sent\n");
+    free(packet);
+    printf("Freed\n");
+}
+void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen)
+{
+
+    //char bufferCopy[PACKET_SIZE];
+    memcpy(buffer, buffer, PACKET_SIZE);
+    //ThreadSend* packet = malloc(sizeof(ThreadSend));
+    if(GiveRandomNumber(1, 100) > ERRORRATE)
+    {
+        if(GiveRandomNumber(1, 100) <= ERRORRATE)
+        {
+            printf("Corrupting Packet...\n");
+            CorruptPacket(buffer);
+        }
+
+        sendto(fd, buffer, size, 0, destAddr, addrLen);
+        /*
+        packet->fd = fd;
+        printf("Pre memcpy()\n");
+        memcpy(packet->buffer, buffer, PACKET_SIZE);
+        packet->size = size;
+        packet->flags = flags;
+        packet->destAddr = destAddr;
+        packet->addrLen = addrLen;
+        printf("Post memcpy()\n");
+        pthread_create(&sendThread, NULL, (void *)ThreadSendDelay, (ThreadSend*) packet);
+        */
+    }
+}
+
+
+/*
 int GiveRandomNumber(const int from, const int to)
 {
 	return rand() % (to - from + 1) + from;
@@ -191,10 +254,10 @@ void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *dest
         packet->addrLen = addrLen;
         printf("Post memcpy()\n");
         pthread_create(&sendThread, NULL, (void *)ThreadSendDelay, (ThreadSend*) packet);
-        */
+        
     }
 }
-
+*/
 void printPacket(Packet pkt)
 {
     printf(BLU "\n┌ ・・・・・・・・・・・・・・ ┐\n"RESET);

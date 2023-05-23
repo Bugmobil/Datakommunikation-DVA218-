@@ -67,9 +67,9 @@ Usage: server <options>
 #define FRAMESIZE 256 // (1-3000) as frame size in bytes
 #define LINKSPEED 100 // (1-10000) in kilobits (1000 bits) per seconds
 #define NUMFRAMES  10 // (1-1000) as number of frames
-#define PROPDELAY  10 // (1-1000) as one-way propagation delay in ms
+#define PROPDELAY  1 // (1-1000) as one-way propagation delay in ms
 #define RTT        PROPDELAY/3 // (1-5000) as round trip time in ms
-#define TIMEOUT    PROPDELAY*3 // (1-5000) as timeout in ms (default 200)
+#define TIMEOUT    PROPDELAY*4 // (1-5000) as timeout in ms (default 200)
 #define WINSIZE    5 // (1-1024) as window size in number of frames
 
 #define TIMEOUTLONG 10 * (10 + PROPDELAY)
