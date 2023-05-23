@@ -27,10 +27,10 @@ void dataHandling(void *args)
         Packet pkt;
         InitPacket(&pkt);
         rdt_rcv(&pkt, targs->sockfd, &(targs->addr));
-        pkt.data[pkt.dataSize] = '\0';
+        pkt.data[pkt.dataSize] = '\0'; // Adds NULL terminator at the end of the message
         printf("Packet received:\n");
         printPacket(pkt);
-        pkt.dataSize = strlen(pkt.data); // Adds NULL terminator at the end of the message
+        pkt.dataSize = strlen(pkt.data); 
         if (pkt.FIN == 1)
         {
             printf(GRN "FIN received. Closing connection.\n" RESET);

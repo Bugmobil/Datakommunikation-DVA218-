@@ -33,7 +33,7 @@ Packet make_pkt(int seqNum, char *data)
     Packet pkt;
     InitPacket(&pkt);
     pkt.seqNum = seqNum;
-    pkt.dataSize = strlen(pkt.data);
+    pkt.dataSize = strlen(data);
     strncpy(pkt.data, data, sizeof(pkt.data));
     
     pkt.checksum = checksum(&pkt);
@@ -62,6 +62,8 @@ void udt_send(Packet *pkt, int sockfd, struct sockaddr_in *dest_addr)
 {
     char buffer[PACKET_SIZE];
     Serialize(buffer, *pkt); // Serialize the packet into a buffer
+    //printf("Packet.data = %s = %s\n", pkt->data, buffer + 2);
+    //printf("Packet.size = %d\n", pkt->dataSize);
     sendto(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
     // Use SendFaulty() to send the serialized packet using the UDP socket
    // SendFaulty(sockfd, buffer, PACKET_SIZE, 0, (struct sockaddr *)dest_addr, sizeof(*dest_addr));
