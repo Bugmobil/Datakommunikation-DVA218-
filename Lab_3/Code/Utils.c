@@ -62,7 +62,7 @@ void Deserialize(char *serializedPacket, Packet *packet)
     memcpy(&dataSize, serializedPacket + FRAMESIZE + sizeof(uint16_t), sizeof(uint32_t));
     memcpy(&seqNum, serializedPacket + FRAMESIZE + sizeof(uint16_t) + sizeof(uint32_t), sizeof(uint32_t));
     //memcpy(&timestamp, serializedPacket + FRAMESIZE + sizeof(uint16_t) + 2 * sizeof(uint32_t), sizeof(uint32_t));
-    memcpy(&checksum, serializedPacket + FRAMESIZE + sizeof(uint16_t) + 3 * sizeof(uint32_t), sizeof(uint32_t));
+    memcpy(&checksum, serializedPacket + FRAMESIZE + sizeof(uint16_t) + 2 * sizeof(uint32_t), sizeof(uint32_t));
 
     packet->dataSize = ntohl(dataSize);
     memcpy(&packet->data, serializedPacket + sizeof(uint16_t), packet->dataSize);
@@ -160,9 +160,9 @@ void ThreadSendDelay(ThreadSend* packet)
     free(packet);
     printf("Freed\n");
 }
-/*void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen)
+void SendFaulty(int fd, char* buffer, int size, int flags, struct sockaddr *destAddr, socklen_t addrLen)
 {
-    ThreadSend* packet = malloc(sizeof(ThreadSend));
+    //ThreadSend* packet = malloc(sizeof(ThreadSend));
     if(GiveRandomNumber(1, 100) > ERRORRATE)
     {
         if(GiveRandomNumber(1, 100) <= ERRORRATE)
@@ -184,7 +184,7 @@ void ThreadSendDelay(ThreadSend* packet)
         pthread_create(&sendThread, NULL, (void *)ThreadSendDelay, (ThreadSend*) packet);
         */
     }
-}*/
+}
 
 void printPacket(Packet pkt)
 {
