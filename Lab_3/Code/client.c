@@ -31,19 +31,19 @@ void dataHandling(void *args)
         printf("Packet received:\n");
         printPacket(pkt);
         pkt.dataSize = strlen(pkt.data); 
-        if (pkt.FIN == 1)
-        {
-            printf(GRN "FIN received. Closing connection.\n" RESET);
-            runThreads = false;
-            pthread_exit(NULL);
-        }
-        else if (pkt.dataSize != 0)
+        if (pkt.dataSize != 0)
         {
             if (!checkCorrupt(pkt))
             {
                 targs->seqNum = pkt.seqNum;
                 if (!checkSeqNum(pkt.seqNum, expectedSeqNum))
                 {
+                    if (pkt.FIN == 1)
+                    {
+                        printf(GRN "FIN received. Closing connection.\n" RESET);
+                        runThreads = false;
+                        pthread_exit(NULL);
+                    }
                     usleep(miliToMicro(PROPDELAY)); // Simulate propagation delay
                     ACKpkt(targs, true);
 

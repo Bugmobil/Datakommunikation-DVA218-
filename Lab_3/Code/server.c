@@ -40,7 +40,7 @@ void sendData(void *args)
     while (runThreads)
     {
         GenerateMGS(sendMSG, FRAMESIZE);
-        if (framesSent != NUMFRAMES)
+        if (ackCount != NUMFRAMES)
         {
             if (nextSeqNum < base + WINSIZE)
             {
@@ -202,7 +202,7 @@ int main()
     pthread_create(&sendThread, NULL, (void *)sendData, (void *)&sendTargs);
     pthread_create(&rcvThread, NULL, (void *)rcvData, (void *)&sendTargs);
 
-    pthread_join(rcvThread, NULL);
+    pthread_join(sendThread, NULL);
     pthread_join(rcvThread, NULL);
 
     timeout(&sendTargs);

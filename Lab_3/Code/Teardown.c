@@ -8,12 +8,12 @@ void ClientTeardown(int fd, struct sockaddr* addr, socklen_t* addrLen)
     timeout.tv_usec = TIMEOUTUSEC;
 
     //Waits for FIN in which it will later send a FIN and ACK. If it receives something else it will ignore it.
-    while(1)
+    /*while(1)
     {
         if(ReceiveFIN(fd, addr, addrLen)) break;
         printf("FIN not received\n");
     }
-    printf("FIN received\n");
+    printf("FIN received\n");*/
     SendFINACK(fd, addr, *addrLen);
     
     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) //Setting timeout for recvfrom()
@@ -42,8 +42,8 @@ void ServerTeardown(int fd, struct sockaddr* addr, socklen_t* addrLen)
     timeout.tv_sec = 0;
     timeout.tv_usec = TIMEOUTUSEC;
 
-    SendFIN(fd, addr, *addrLen);
-    printf("FIN sent\n");
+    /*SendFIN(fd, addr, *addrLen);
+    printf("FIN sent\n");*/
     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) //Setting timeout for recvfrom()
         perror("Error Setting Timeout");
 
